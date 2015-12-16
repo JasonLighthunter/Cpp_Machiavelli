@@ -9,15 +9,12 @@
 #ifndef __socketexample__ClientCommand__
 #define __socketexample__ClientCommand__
 
-#include <memory>
-
 class Player;
 class Socket;
 
 class ClientCommand {
 public:
-	ClientCommand(const std::string& cmd, std::shared_ptr<Socket> client, std::shared_ptr<Player> player)
-		: cmd{cmd}, client{client}, player{player} {}
+	ClientCommand(const std::string& cmd, std::shared_ptr<Socket> client, std::shared_ptr<Player> player) : cmd{cmd}, client {client}, player{player} {}
 
 	std::string get_cmd() const { return cmd; }
 	std::shared_ptr<Socket> get_client() const { return client; }

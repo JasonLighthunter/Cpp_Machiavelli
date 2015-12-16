@@ -12,10 +12,10 @@ void __throw_if_err(int err, const char* file, unsigned int line, const char* me
 
 #define throw_if_min1(___x___)					__throw_if_min1((___x___), __FILE__, __LINE__)
 #define throw_if_null(__ptr__)					__throw_if_null((__ptr__), __FILE__, __LINE__)
-#define throw_if_err(__err__)					__throw_if_err((__err__),  __FILE__, __LINE__)
+#define throw_if_err(__err__)					__throw_if_err((__err__), __FILE__, __LINE__)
 
 #define throw_if_min1_msg(___x___, ___msg___)	__throw_if_min1((___x___), __FILE__, __LINE__, ___msg___)
 #define throw_if_null_msg(__ptr__, ___msg___)	__throw_if_null((__ptr__), __FILE__, __LINE__, ___msg___)
-#define throw_if_err_msg(__err__, ___msg___)	__throw_if_err((__err__),  __FILE__, __LINE__, ___msg___)
+#define throw_if_err_msg(__err__, ___msg___)	__throw_if_err((__err__), __FILE__, __LINE__, ___msg___)
 
 #endif /* defined(__throw__) */
