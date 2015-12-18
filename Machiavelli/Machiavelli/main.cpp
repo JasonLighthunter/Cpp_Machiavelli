@@ -12,6 +12,7 @@
 #include "Player.hpp"
 #include <iostream>
 #include <vector>
+#include "CommandHandler.h"
 
 using namespace std;
 
@@ -30,15 +31,15 @@ void consume_command() {
 			shared_ptr<Socket> client {command.get_client()};
 			shared_ptr<Player> player {command.get_player()};
 			try {
-				// TODO handle command here
-				*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
+				//CustomCode
+				CommandHandler::getInstance().handleCommand(command);
 			} catch (const exception& ex) {
-				cerr << "*** exception in consumer thread for player " << player->get_name() << ": " << ex.what() << '\n';
+				cerr << "*** exception in consumer thread for player " << player->getName() << ": " << ex.what() << '\n';
 				if (client->is_open()) {
 					client->write("Sorry, something went wrong during handling of your request.\r\n");
 				}
 			} catch (...) {
-				cerr << "*** exception in consumer thread for player " << player->get_name() << '\n';
+				cerr << "*** exception in consumer thread for player " << player->getName() << '\n';
 				if (client->is_open()) {
 					client->write("Sorry, something went wrong during handling of your request.\r\n");
 				}
@@ -58,12 +59,12 @@ void handle_client(shared_ptr<Socket> client) {
 		string name {client->readline()};
 		shared_ptr<Player> player {new Player {name}};
 		*client << "Welcome, " << name << ", have fun playing our game!\r\n" << machiavelli::prompt;
-
+		CommandHandler::getInstance().init(player, client);
 		while (true) { // game loop
 			try {
 				// read first line of request
 				string cmd {client->readline()};
-				cerr << '[' << client->get_dotted_ip() << " (" << client->get_socket() << ") " << player->get_name() << "] " << cmd << '\n';
+				cerr << '[' << client->get_dotted_ip() << " (" << client->get_socket() << ") " << player->getName() << "] " << cmd << '\n';
 				
 				if (cmd == "quit") {
 					client->write("Bye!\r\n");
@@ -73,12 +74,12 @@ void handle_client(shared_ptr<Socket> client) {
 				ClientCommand command {cmd, client, player};
 				queue.put(command);
 			} catch (const exception& ex) {
-				cerr << "*** exception in client handler thread for player " << player->get_name() << ": " << ex.what() << '\n';
+				cerr << "*** exception in client handler thread for player " << player->getName() << ": " << ex.what() << '\n';
 				if (client->is_open()) {
 					*client << "ERROR: " << ex.what() << "\r\n";
 				}
 			} catch (...) {
-				cerr << "*** exception in client handler thread for player " << player->get_name() << '\n';
+				cerr << "*** exception in client handler thread for player " << player->getName() << '\n';
 				if (client->is_open()) {
 					client->write("ERROR: something went wrong during handling of your request. Sorry!\r\n");
 				}
