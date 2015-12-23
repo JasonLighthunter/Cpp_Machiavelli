@@ -17,27 +17,25 @@
 //=============================================================================
 
 #if defined(__APPLE__) || defined(__linux__)
-#include <sys/socket.h>
-typedef int SOCKET;
+	#include <sys/socket.h>
+	typedef int SOCKET;
 #else // Windows
-#include <winsock2.h>
-typedef long ssize_t;
+	#include <winsock2.h>
+	typedef long ssize_t;
 #endif
 
-#include <iostream>
 #include <string>
 #include <memory>
 
 //=============================================================================
-class Socket
+class Socket {
 //=============================================================================
-{
 protected:
-	SOCKET sock;
+	SOCKET sock {0};
 	struct sockaddr_storage addr;
 
 public:
-	Socket() : sock(0) {}
+	Socket() {}
 	Socket(SOCKET sock, const struct sockaddr& address);
 	Socket(const Socket& other) = delete;
 	Socket(Socket&& other);
@@ -52,18 +50,18 @@ public:
 	bool is_open() const { return sock > 0; }
 	std::string get_dotted_ip() const;
 
-	ssize_t read(char *buf, size_t maxlen) const;
-	char read() const;
+	ssize_t read(char *buf, ssize_t maxlen) const;
+    char read() const;
 	std::string readline() const;
 
 	void write(const std::string& msg) const;
 	void write(const char *buf, size_t len) const;
 	void write(char c) const;
-
+	
 	const Socket& operator<<(const char c) const;
 	const Socket& operator<<(const char* message) const;
 	const Socket& operator<<(const std::string& message) const;
-
+	
 	template <typename T> const Socket& operator<<(T value) const {
 		write(std::to_string(value));
 		return *this;
@@ -71,18 +69,16 @@ public:
 };
 
 //=============================================================================
-class ServerSocket : public Socket
+class ServerSocket : public Socket {
 //=============================================================================
-{
 public:
 	ServerSocket(int port);
 	std::unique_ptr<Socket> accept();
 };
 
 //=============================================================================
-class ClientSocket : public Socket
+class ClientSocket : public Socket {
 //=============================================================================
-{
 public:
 	ClientSocket(const std::string& host, int port);
 };
