@@ -13,7 +13,10 @@ public:
 	Game();
 	~Game();
 private:
-	std::vector<std::unique_ptr<Card>> deck;
-	std::map<EnumCharacter, std::unique_ptr<Character>> allRoles;
+	void createBuildingCards();
+	void createCharacterCards();
+	std::vector<std::string> split(std::string& s, char delim);
+	std::vector<std::shared_ptr<Card>> buildingsDeck;
+	std::vector<std::shared_ptr<Character>> charactersDeck;
 };
 

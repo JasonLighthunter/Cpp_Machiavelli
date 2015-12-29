@@ -1,8 +1,10 @@
 #include "Character.h"
 
 
-Character::Character()
+Character::Character(int priority, EnumCharacter role)
 {
+	priority_ = priority;
+	role_ = role;
 }
 
 
