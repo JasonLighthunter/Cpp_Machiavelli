@@ -32,11 +32,13 @@ void Game::createBuildingCards() {
 		exit(0);
 	}
 
+	int lineNumber = 1;
 	string line;
 	while (getline(input_file, line)) {
 		vector<string> parts = split(line, ';');
-		shared_ptr<Card> buildingCard{ new Card{parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
+		shared_ptr<Card> buildingCard{ new Card{lineNumber, parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
 		buildingsDeck.push_back(buildingCard);
+		lineNumber++;
 	}
 }
 

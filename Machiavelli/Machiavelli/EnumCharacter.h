@@ -1,22 +1,22 @@
 #pragma once
 enum class EnumCharacter {
-	MOORDENAAR,
-	DIEF,
-	MAGIER,
-	KONING,
-	PREDIKER,
-	KOOPMAN,
-	BOUWMEESTER,
-	CONDOTTIERE
+	ASSASSIN,
+	THIEF,
+	MAGICIAN,
+	KING,
+	BISHOP,
+	MERCHANT,
+	ARCHITECT,
+	WARLORD
 };
 
 const std::map<std::string, EnumCharacter> convertToEnumCharacter = {
-	{ "Moordenaar", EnumCharacter::MOORDENAAR },
-	{ "Dief", EnumCharacter::DIEF },
-	{ "Magiër", EnumCharacter::MAGIER },
-	{ "Koning", EnumCharacter::KONING },
-	{ "Prediker", EnumCharacter::PREDIKER },
-	{ "Koopman", EnumCharacter::KOOPMAN },
-	{ "Bouwmeester", EnumCharacter::BOUWMEESTER },
-	{ "Condottiere", EnumCharacter::CONDOTTIERE }
+	{ "Moordenaar", EnumCharacter::ASSASSIN },
+	{ "Dief", EnumCharacter::THIEF },
+	{ "Magiër", EnumCharacter::MAGICIAN },
+	{ "Koning", EnumCharacter::KING },
+	{ "Prediker", EnumCharacter::BISHOP },
+	{ "Koopman", EnumCharacter::MERCHANT },
+	{ "Bouwmeester", EnumCharacter::ARCHITECT },
+	{ "Condottiere", EnumCharacter::WARLORD }
 };
