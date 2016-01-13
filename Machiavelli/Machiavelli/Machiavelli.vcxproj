@@ -148,6 +148,7 @@
     <ClInclude Include="CommandHandler.h" />
     <ClInclude Include="EnumCharacter.h" />
     <ClInclude Include="EnumColor.h" />
+    <ClInclude Include="EnumState.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Socket.h" />

@@ -1,13 +1,12 @@
-#include <sstream>
 #include <iostream>
-#include <fstream>
-#include <istream>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include "Game.h"
 #include "Card.h"
 #include "Character.h"
-#include "EnumColor.h"
 #include "EnumCharacter.h"
+#include "EnumColor.h"
 
 using namespace std;
 
@@ -22,6 +21,13 @@ Game::~Game()
 {
 }
 
+void Game::addPlayer(shared_ptr<Player> player) {
+	players_.push_back(player);
+}
+
+void Game::switchState(EnumState state) {
+	currentState_ = state;
+}
 
 void Game::createBuildingCards() {
 	vector<string> lines;
@@ -36,7 +42,7 @@ void Game::createBuildingCards() {
 	while (getline(input_file, line)) {
 		vector<string> parts = split(line, ';');
 		shared_ptr<Card> buildingCard{ new Card{parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
-		buildingsDeck.push_back(buildingCard);
+		buildingsDeck_.push_back(buildingCard);
 	}
 }
 
@@ -53,7 +59,7 @@ void Game::createCharacterCards() {
 	while (getline(input_file, line)) {
 		vector<string> parts = split(line, ';');
 		shared_ptr<Character> buildingCard{ new Character{ stoi(parts[0]), convertToEnumCharacter.at(parts[1]) } };
-		charactersDeck.push_back(buildingCard);
+		charactersDeck_.push_back(buildingCard);
 	}
 }
 
@@ -61,8 +67,8 @@ void Game::createCharacterCards() {
 vector<string> Game::split(string & s, char delim) {
 	stringstream ss(s);
 	string item;
-	vector<std::string> elems;
-	while (std::getline(ss, item, delim)) {
+	vector<string> elems;
+	while (getline(ss, item, delim)) {
 		elems.push_back(item);
 	}
 	return elems;

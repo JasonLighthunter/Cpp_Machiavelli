@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 enum class EnumCharacter {
 	MOORDENAAR,
 	DIEF,

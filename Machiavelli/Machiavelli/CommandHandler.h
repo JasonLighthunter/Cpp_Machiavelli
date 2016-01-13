@@ -3,25 +3,25 @@
 
 #include <memory>
 #include <vector>
+#include "Game.h"
 
+class Socket;
 class ClientCommand;
 class Player;
-class Socket;
 
 class CommandHandler {
 public:
 	static CommandHandler& getInstance() { return instance; }
-	void handleCommand(ClientCommand clientCmd) const;
-	std::shared_ptr<Player> getActivePlayer() const { return players_[turnCounter%2]; }
-	std::shared_ptr<Socket> getActiveSocket() const { return sockets_[turnCounter%2]; }
+	void handleCommand(ClientCommand clientCmd);
+	std::shared_ptr<Socket> getActiveSocket() const { return sockets_[turnCounter_%2]; }
 	void init(std::shared_ptr<Player>, std::shared_ptr<Socket>);
 private:
 	//variables
 	static CommandHandler instance;
 	CommandHandler() {};
-	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::shared_ptr<Socket>> sockets_;
-	int turnCounter = 0;
+	std::unique_ptr<Game> game_;
+	int turnCounter_ = 0;
 	int playerCount_ = 0;
 
 	//methods
