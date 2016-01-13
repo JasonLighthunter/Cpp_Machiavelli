@@ -27,6 +27,8 @@ public:
 	std::string getName() const { return name; }
 	void setName(const std::string& new_name) { name = new_name; }
 
+	void increaseGold(const int increase_with) { gold += increase_with; }
+
 	bool BuildBuilding(std::string buildingName);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;
