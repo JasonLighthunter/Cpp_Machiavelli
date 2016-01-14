@@ -33,7 +33,6 @@ std::string Game::getPlayerName(int turnCounter) {
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
 	pair<EnumCharacter, shared_ptr<Character>> returnValue = {character, charactersDeck_.at(character)};
 	charactersDeck_.erase(character);
-	cout<<"thrown out: "<<convertFromEnumCharacter.at(character);
 	return returnValue;
 }
 
@@ -44,7 +43,6 @@ bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Pla
 		cerr<<convertFromEnumCharacter.at(character)<<" is not in the characterdeck.\n\r";
 		return false;
 	}
-	cout<<player->getName()<<" has: "<<convertFromEnumCharacter.at(character)<<"\n\r";
 	return true;
 }
 
@@ -57,11 +55,13 @@ void Game::createBuildingCards() {
 		exit(0);
 	}
 
+	int lineNumber = 1;
 	string line;
 	while (getline(input_file, line)) {
 		vector<string> parts = split(line, ';');
-		shared_ptr<Card> buildingCard{ new Card{parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
-		buildingsDeck_.push_back(buildingCard);
+		shared_ptr<Card> buildingCard{ new Card{lineNumber, parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
+		buildingsDeck_.push(buildingCard);
+		lineNumber++;
 	}
 }
 

@@ -48,6 +48,12 @@
     <ClInclude Include="CommandHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EnumCard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Range.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EnumState.h">
       <Filter>Header Files</Filter>
     </ClInclude>

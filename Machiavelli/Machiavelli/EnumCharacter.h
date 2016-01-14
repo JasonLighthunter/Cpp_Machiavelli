@@ -2,34 +2,34 @@
 #include <map>
 
 enum class EnumCharacter {
-	MOORDENAAR,
-	DIEF,
-	MAGIER,
-	KONING,
-	PREDIKER,
-	KOOPMAN,
-	BOUWMEESTER,
-	CONDOTTIERE
+	ASSASSIN,
+	THIEF,
+	MAGICIAN,
+	KING,
+	BISHOP,
+	MERCHANT,
+	ARCHITECT,
+	WARLORD
 };
 
 const std::map<std::string, EnumCharacter> convertToEnumCharacter = {
-	{ "moordenaar", EnumCharacter::MOORDENAAR },
-	{ "dief", EnumCharacter::DIEF },
-	{ "magier", EnumCharacter::MAGIER },
-	{ "koning", EnumCharacter::KONING },
-	{ "prediker", EnumCharacter::PREDIKER },
-	{ "koopman", EnumCharacter::KOOPMAN },
-	{ "bouwmeester", EnumCharacter::BOUWMEESTER },
-	{ "condottiere", EnumCharacter::CONDOTTIERE }
+	{ "moordenaar", EnumCharacter::ASSASSIN },
+	{ "dief", EnumCharacter::THIEF },
+	{ "magier", EnumCharacter::MAGICIAN },
+	{ "koning", EnumCharacter::KING },
+	{ "prediker", EnumCharacter::BISHOP },
+	{ "koopman", EnumCharacter::MERCHANT },
+	{ "bouwmeester", EnumCharacter::ARCHITECT },
+	{ "condottiere", EnumCharacter::WARLORD }
 };
 
 const std::map<EnumCharacter, std::string> convertFromEnumCharacter = {
-	{EnumCharacter::MOORDENAAR,"moordenaar"},
-	{EnumCharacter::DIEF, "dief"},
-	{EnumCharacter::MAGIER, "magier"},
-	{EnumCharacter::KONING, "koning"},
-	{EnumCharacter::PREDIKER, "prediker"},
-	{EnumCharacter::KOOPMAN, "koopman"},
-	{EnumCharacter::BOUWMEESTER, "bouwmeester"},
-	{EnumCharacter::CONDOTTIERE, "condottiere"}
+	{EnumCharacter::ASSASSIN,"moordenaar"},
+	{EnumCharacter::THIEF, "dief"},
+	{EnumCharacter::MAGICIAN, "magier"},
+	{EnumCharacter::KING, "koning"},
+	{EnumCharacter::BISHOP, "prediker"},
+	{EnumCharacter::MERCHANT, "koopman"},
+	{EnumCharacter::ARCHITECT, "bouwmeester"},
+	{EnumCharacter::WARLORD, "condottiere"}
 };

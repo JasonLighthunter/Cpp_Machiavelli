@@ -12,8 +12,8 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include "Card.h"
 
+class Card;
 class Character;
 enum class EnumCharacter;
 
@@ -25,19 +25,22 @@ public:
 	std::string getName() const { return name_; }
 	void setName(const std::string& new_name) { name_ = new_name; }
 
+	void increaseGold(const int increase_with) { gold_ += increase_with; }
 	int getGold() const { return gold_; }
 	bool isKing() const { return isKing_; }
 	void setIsKing(bool b);
 
 	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
-	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const { 
-		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>(); 
+	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const {
+		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>();
 	}
+	bool buildBuilding(std::string buildingName);
 private:
-	std::vector<std::unique_ptr<Card>> hand;
-	std::vector<std::unique_ptr<Card>> buildings;
-	std::map<EnumCharacter, std::shared_ptr<Character>> currentRoles;
+	std::map<int, std::shared_ptr<Card>> hand_;
+	std::map<int, std::shared_ptr<Card>> buildings_;
+	std::map<EnumCharacter, std::shared_ptr<Character>> currentRoles_;
 	std::string name_;
+
 	bool isKing_ = false;
 	int gold_ = 0;
 };

@@ -146,11 +146,13 @@
     <ClInclude Include="Character.h" />
     <ClInclude Include="ClientCommand.h" />
     <ClInclude Include="CommandHandler.h" />
+    <ClInclude Include="EnumCard.h" />
     <ClInclude Include="EnumCharacter.h" />
     <ClInclude Include="EnumColor.h" />
     <ClInclude Include="EnumState.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.hpp" />
+    <ClInclude Include="Range.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="Sync_queue.h" />
     <ClInclude Include="throw.h" />

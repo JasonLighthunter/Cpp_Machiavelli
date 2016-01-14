@@ -29,7 +29,6 @@ private:
 	void writeMessageToActivePlayer(std::string message);
 	void writeReply(ClientCommand clientCmd, std::string message);
 	void writeMessageToAll(std::string message);
-	void clearWindowActivePlayer();
 	std::string prepareMessage(std::string messages);
 
 	void showPossibleCharacters();

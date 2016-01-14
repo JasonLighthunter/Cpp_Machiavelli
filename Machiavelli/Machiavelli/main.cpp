@@ -19,13 +19,13 @@ namespace machiavelli {
 	const string prompt {"machiavelli> "};
 }
 
-static Sync_queue<ClientCommand> queue;
+static Sync_queue<ClientCommand> syncQueue;
 
 // runs in its own thread
 void consume_command() {
 	try {
 		while (true) {
-			ClientCommand command {queue.get()}; // will block here unless there are still command objects in the queue
+			ClientCommand command {syncQueue.get()}; // will block here unless there are still command objects in the queue
 			shared_ptr<Socket> client {command.getClient()};
 			shared_ptr<Player> player {command.getPlayer()};
 			try {
@@ -70,7 +70,7 @@ void handle_client(shared_ptr<Socket> client) {
 				}
 				
 				ClientCommand command {cmd, client, player};
-				queue.put(command);
+				syncQueue.put(command);
 			} catch (const exception& ex) {
 				cerr << "*** exception in client handler thread for player " << player->getName() << ": " << ex.what() << '\n';
 				if (client->is_open()) {

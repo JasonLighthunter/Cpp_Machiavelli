@@ -3,7 +3,6 @@
 #include "CommandHandler.h"
 #include "ClientCommand.h"
 #include "Socket.h"
-#include "Game.h"
 #include "EnumState.h"
 #include "EnumCharacter.h"
 #include "Player.hpp"
@@ -39,16 +38,16 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 	}
 	//on this indentation level: handling of commands.
 		//on this indentation level: handling of state/context.
-	if(cmd=="start"||cmd=="begin") {
-		if(game_->getCurrentState()==EnumState::UNSTARTED && playerCount_==2) {
+	if(cmd=="start" || cmd=="begin") {
+		if(game_->getCurrentState() == EnumState::UNSTARTED && playerCount_ == 2) {
 			handleStartCommand(clientCmd);
 		} else {
 			writeReply(clientCmd, "Het is nu niet mogelijk om een spel te starten.");
 		}
 	} else if(cmd=="moordenaar"	|| cmd=="dief"	 || cmd=="magier"	  || cmd=="koning" ||
-			  cmd=="prediker"	|| cmd=="koopman"|| cmd=="bouwmeester"||  cmd=="condottiere") {
-		if(game_->getCurrentState()==EnumState::SETUP && clientCmd.getPlayer()==game_->getPlayerOnIndex(turnCounter_)) {
-			handleSetupCommand(convertToEnumCharacter.at(cmd),clientCmd);
+			  cmd=="prediker"	|| cmd=="koopman"|| cmd=="bouwmeester"|| cmd=="condottiere") {
+		if(game_->getCurrentState() == EnumState::SETUP && clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
+			handleSetupCommand(convertToEnumCharacter.at(cmd), clientCmd);
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
@@ -68,15 +67,6 @@ void CommandHandler::writeMessageToAll(string message) {
 	for(shared_ptr<Socket> socket:sockets_) {
 		socket->write(prepareMessage(message));
 	}
-}
-void CommandHandler::clearWindowActivePlayer() {
-	size_t i = 0;
-	string result="";
-	while(i<20) {
-		result+="\n\r";
-		i++;
-	}
-	writeMessageToActivePlayer(result);
 }
 
 string CommandHandler::prepareMessage(string messages) {
@@ -107,8 +97,6 @@ void CommandHandler::showPossibleCharacters() {
 	boolean done = false;
 	string resultLine = "\n\n\r";
 
-	clearWindowActivePlayer();
-
 	if(game_->getCharactersDeck().size()>0) {
 		while(!done) {
 			random_device dev;
@@ -116,7 +104,7 @@ void CommandHandler::showPossibleCharacters() {
 			uniform_int_distribution<int> dist{0, static_cast<int>(convertFromEnumCharacter.size())-1};
 			int chosenNumber=dist(dre);
 			try {
-				if(!(static_cast<EnumCharacter>(chosenNumber)==EnumCharacter::KONING)) {
+				if(!(static_cast<EnumCharacter>(chosenNumber)==EnumCharacter::KING)) {
 					game_->removeCharacter(static_cast<EnumCharacter>(chosenNumber));
 					done=true;
 				}
