@@ -1,6 +1,7 @@
 #ifndef COMMAND_HANDLER_H
 #define COMMAND_HANDLER_H
 
+#include <utility>
 #include <memory>
 #include <vector>
 #include "Game.h"
@@ -26,7 +27,14 @@ private:
 
 	//methods
 	void writeMessageToActivePlayer(std::string message);
+	void writeReply(ClientCommand clientCmd, std::string message);
 	void writeMessageToAll(std::string message);
+	void clearWindowActivePlayer();
 	std::string prepareMessage(std::string messages);
+
+	void showPossibleCharacters();
+
+	void handleStartCommand(ClientCommand clientCmd);
+	void handleSetupCommand(EnumCharacter character, ClientCommand clientCmd);
 };
 #endif

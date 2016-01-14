@@ -11,9 +11,10 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 #include "Card.h"
-#include "Character.h"
 
+class Character;
 enum class EnumCharacter;
 
 class Player {
@@ -26,10 +27,16 @@ public:
 
 	int getGold() const { return gold_; }
 	bool isKing() const { return isKing_; }
+	void setIsKing(bool b);
+
+	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
+	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const { 
+		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>(); 
+	}
 private:
 	std::vector<std::unique_ptr<Card>> hand;
 	std::vector<std::unique_ptr<Card>> buildings;
-	std::map<EnumCharacter, std::unique_ptr<Character>> currentRoles;
+	std::map<EnumCharacter, std::shared_ptr<Character>> currentRoles;
 	std::string name_;
 	bool isKing_ = false;
 	int gold_ = 0;
