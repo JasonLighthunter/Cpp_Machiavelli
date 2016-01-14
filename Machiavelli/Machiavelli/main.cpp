@@ -1,10 +1,8 @@
-//
 //  main.cpp
 //  socketexample
 //
 //  Created by Bob Polis on 16/09/14.
 //  Copyright (c) 2014 Avans Hogeschool, 's-Hertogenbosch. All rights reserved.
-//
 
 #include "Socket.h"
 #include "Sync_queue.h"
@@ -21,15 +19,15 @@ namespace machiavelli {
 	const string prompt {"machiavelli> "};
 }
 
-static Sync_queue<ClientCommand> queue;
+static Sync_queue<ClientCommand> syncQueue;
 
 // runs in its own thread
 void consume_command() {
 	try {
 		while (true) {
-			ClientCommand command {queue.get()}; // will block here unless there are still command objects in the queue
-			shared_ptr<Socket> client {command.get_client()};
-			shared_ptr<Player> player {command.get_player()};
+			ClientCommand command {syncQueue.get()}; // will block here unless there are still command objects in the queue
+			shared_ptr<Socket> client {command.getClient()};
+			shared_ptr<Player> player {command.getPlayer()};
 			try {
 				//CustomCode
 				CommandHandler::getInstance().handleCommand(command);
@@ -41,7 +39,7 @@ void consume_command() {
 			} catch (...) {
 				cerr << "*** exception in consumer thread for player " << player->getName() << '\n';
 				if (client->is_open()) {
-					client->write("Sorry, something went wrong during handling of your request.\r\n");
+					client->write("Sorry, er is iets fout gegaan tijdens het afhandlen van de invoer.\r\n");
 				}
 			}
 		}
@@ -53,12 +51,12 @@ void consume_command() {
 // this function runs in a separate thread
 void handle_client(shared_ptr<Socket> client) {
 	try {
-		client->write("Welcome to Server 1.0! To quit, type 'quit'.\r\n");
-		client->write("What's your name?\r\n");
+		client->write("Welkom bij Server 1.0! typ 'quit' om af te sluiten.\r\n");
+		client->write("Hoe heet je?\r\n");
 		client->write(machiavelli::prompt);
 		string name {client->readline()};
 		shared_ptr<Player> player {new Player {name}};
-		*client << "Welcome, " << name << ", have fun playing our game!\r\n" << machiavelli::prompt;
+		*client << "Welkom, " << name << ", veel plezier!\r\n" << machiavelli::prompt;
 		CommandHandler::getInstance().init(player, client);
 		while (true) { // game loop
 			try {
@@ -67,12 +65,12 @@ void handle_client(shared_ptr<Socket> client) {
 				cerr << '[' << client->get_dotted_ip() << " (" << client->get_socket() << ") " << player->getName() << "] " << cmd << '\n';
 				
 				if (cmd == "quit") {
-					client->write("Bye!\r\n");
+					client->write("Doei!\r\n");
 					break;
 				}
 				
 				ClientCommand command {cmd, client, player};
-				queue.put(command);
+				syncQueue.put(command);
 			} catch (const exception& ex) {
 				cerr << "*** exception in client handler thread for player " << player->getName() << ": " << ex.what() << '\n';
 				if (client->is_open()) {

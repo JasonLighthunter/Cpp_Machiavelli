@@ -23,23 +23,23 @@ enum class EnumCard {
 };
 
 const std::map<std::string, EnumCard> convertToEnumCard = {
-	{ "Taveerne", EnumCard::TAVERN },
-	{ "Markt", EnumCard::MARKET },
-	{ "Handelshuis", EnumCard::TRADING_POST },
-	{ "Kasteel", EnumCard::CASTLE },
-	{ "Paleis", EnumCard::PALACE },
-	{ "Winkels", EnumCard::STORES },
-	{ "Raadhuis", EnumCard::CITY_HALL },
-	{ "Haven", EnumCard::HARBOUR },
-	{ "Tempel", EnumCard::TEMPLE },
-	{ "Kerk", EnumCard::CHURCH },
-	{ "Kathedraal", EnumCard::CATHEDRAL },
-	{ "Landgoed", EnumCard::ESTATE },
-	{ "Klooster", EnumCard::MONASTERY },
-	{ "Wachttoren", EnumCard::WATCHTOWER },
-	{ "Gevangenis", EnumCard::PRISON },
-	{ "Toernooiveld", EnumCard::BATTLEFIELD },
-	{ "Burcht", EnumCard::FORTRESS }
+	{ "taveerne", EnumCard::TAVERN },
+	{ "markt", EnumCard::MARKET },
+	{ "handelshuis", EnumCard::TRADING_POST },
+	{ "kasteel", EnumCard::CASTLE },
+	{ "paleis", EnumCard::PALACE },
+	{ "winkels", EnumCard::STORES },
+	{ "raadhuis", EnumCard::CITY_HALL },
+	{ "haven", EnumCard::HARBOUR },
+	{ "tempel", EnumCard::TEMPLE },
+	{ "kerk", EnumCard::CHURCH },
+	{ "kathedraal", EnumCard::CATHEDRAL },
+	{ "landgoed", EnumCard::ESTATE },
+	{ "klooster", EnumCard::MONASTERY },
+	{ "wachttoren", EnumCard::WATCHTOWER },
+	{ "gevangenis", EnumCard::PRISON },
+	{ "toernooiveld", EnumCard::BATTLEFIELD },
+	{ "burcht", EnumCard::FORTRESS }
 };
 
 const std::map<EnumCard, Range> EnumCardToRange = {

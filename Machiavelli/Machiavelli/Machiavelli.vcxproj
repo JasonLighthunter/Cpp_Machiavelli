@@ -149,7 +149,7 @@
     <ClInclude Include="EnumCard.h" />
     <ClInclude Include="EnumCharacter.h" />
     <ClInclude Include="EnumColor.h" />
-    <ClInclude Include="EnumGameState.h" />
+    <ClInclude Include="EnumState.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Range.h" />

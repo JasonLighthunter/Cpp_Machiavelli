@@ -9,33 +9,40 @@
 #ifndef Player_hpp
 #define Player_hpp
 
-#include <memory>
 #include <vector>
-#include <string>
 #include <map>
-#include "Character.h"
+#include <memory>
 
-enum class EnumCharacter;
-enum class EnumCard;
 class Card;
+class Character;
+enum class EnumCharacter;
 
 class Player {
 public:
 	Player() {}
-	Player(const std::string& name) : name {name} {}
-	
-	std::string getName() const { return name; }
-	void setName(const std::string& new_name) { name = new_name; }
+	Player(const std::string& name) : name_ {name} {}
 
-	void increaseGold(const int increase_with) { gold += increase_with; }
+	std::string getName() const { return name_; }
+	void setName(const std::string& new_name) { name_ = new_name; }
 
-	bool BuildBuilding(std::string buildingName);
+	void increaseGold(const int increase_with) { gold_ += increase_with; }
+	int getGold() const { return gold_; }
+	bool isKing() const { return isKing_; }
+	void setIsKing(bool b);
+
+	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
+	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const {
+		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>();
+	}
+	bool buildBuilding(std::string buildingName);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;
-	std::map<int, std::shared_ptr<Card>> buildings;
-	std::map<EnumCharacter, std::unique_ptr<Character>> currentRoles;
-	std::string name;
-	int gold = 0;
+	std::map<int, std::shared_ptr<Card>> buildings_;
+	std::map<EnumCharacter, std::shared_ptr<Character>> currentRoles_;
+	std::string name_;
+
+	bool isKing_ = false;
+	int gold_ = 0;
 };
 
 #endif /* Player_hpp */

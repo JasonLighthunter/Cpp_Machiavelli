@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 enum class EnumCharacter {
 	ASSASSIN,
 	THIEF,
@@ -11,12 +13,23 @@ enum class EnumCharacter {
 };
 
 const std::map<std::string, EnumCharacter> convertToEnumCharacter = {
-	{ "Moordenaar", EnumCharacter::ASSASSIN },
-	{ "Dief", EnumCharacter::THIEF },
-	{ "Magiër", EnumCharacter::MAGICIAN },
-	{ "Koning", EnumCharacter::KING },
-	{ "Prediker", EnumCharacter::BISHOP },
-	{ "Koopman", EnumCharacter::MERCHANT },
-	{ "Bouwmeester", EnumCharacter::ARCHITECT },
-	{ "Condottiere", EnumCharacter::WARLORD }
+	{ "moordenaar", EnumCharacter::ASSASSIN },
+	{ "dief", EnumCharacter::THIEF },
+	{ "magier", EnumCharacter::MAGICIAN },
+	{ "koning", EnumCharacter::KING },
+	{ "prediker", EnumCharacter::BISHOP },
+	{ "koopman", EnumCharacter::MERCHANT },
+	{ "bouwmeester", EnumCharacter::ARCHITECT },
+	{ "condottiere", EnumCharacter::WARLORD }
+};
+
+const std::map<EnumCharacter, std::string> convertFromEnumCharacter = {
+	{EnumCharacter::ASSASSIN,"moordenaar"},
+	{EnumCharacter::THIEF, "dief"},
+	{EnumCharacter::MAGICIAN, "magier"},
+	{EnumCharacter::KING, "koning"},
+	{EnumCharacter::BISHOP, "prediker"},
+	{EnumCharacter::MERCHANT, "koopman"},
+	{EnumCharacter::ARCHITECT, "bouwmeester"},
+	{EnumCharacter::WARLORD, "condottiere"}
 };

@@ -17,4 +17,3 @@ private:
 	int value_;
 	EnumColor color_;
 };
-
