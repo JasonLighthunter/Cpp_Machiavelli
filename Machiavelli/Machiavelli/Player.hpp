@@ -13,11 +13,10 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "Card.h"
 #include "Character.h"
 
 enum class EnumCharacter;
-class Character;
+enum class EnumCard;
 class Card;
 
 class Player {
@@ -27,12 +26,16 @@ public:
 	
 	std::string getName() const { return name; }
 	void setName(const std::string& new_name) { name = new_name; }
+
+	void increaseGold(const int increase_with) { gold += increase_with; }
+
+	bool BuildBuilding(std::string buildingName);
 private:
-	std::vector<std::unique_ptr<Card>> hand;
-	std::vector<std::unique_ptr<Card>> buildings;
+	std::map<int, std::shared_ptr<Card>> hand_;
+	std::map<int, std::shared_ptr<Card>> buildings;
 	std::map<EnumCharacter, std::unique_ptr<Character>> currentRoles;
 	std::string name;
-	int gold;
+	int gold = 0;
 };
 
 #endif /* Player_hpp */

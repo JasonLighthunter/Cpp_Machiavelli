@@ -3,15 +3,15 @@
 #include <map>
 
 enum class EnumColor {
-	GEEL,
-	BLAUW,
-	GROEN,
-	ROOD
+	YELLOW,
+	BLUE,
+	GREEN,
+	RED
 };
 
 const std::map<std::string, EnumColor> convertToEnumColor = {
-	{ "geel", EnumColor::GEEL },
-	{ "blauw", EnumColor::BLAUW },
-	{ "groen", EnumColor::GROEN },
-	{ "rood", EnumColor::ROOD }
+	{ "geel", EnumColor::YELLOW },
+	{ "blauw", EnumColor::BLUE },
+	{ "groen", EnumColor::GREEN },
+	{ "rood", EnumColor::RED }
 };
