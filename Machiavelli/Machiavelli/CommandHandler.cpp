@@ -75,6 +75,7 @@ string CommandHandler::prepareMessage(string messages) {
 
 void CommandHandler::handleStartCommand(ClientCommand clientCmd){
 	game_->switchState(EnumState::SETUP);
+	game_->init();
 	string name = clientCmd.getPlayer()->getName();
 	if(!(game_->getPlayerName(turnCounter_)==name)) {
 		turnCounter_++;

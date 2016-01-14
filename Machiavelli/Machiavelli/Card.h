@@ -10,7 +10,7 @@ public:
 	Card(int id, std::string name, int value, EnumColor color);
 	~Card();
 	int getCosts() const { return value_; }
-	int getId() const { return value_; }
+	int getId() const { return id_; }
 private:
 	int id_;
 	std::string name_;

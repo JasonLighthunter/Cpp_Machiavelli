@@ -16,6 +16,8 @@ public:
 	Game();
 	~Game();
 
+	void init();
+
 	void addPlayer(std::shared_ptr<Player> player);
 	std::shared_ptr<Player> getPlayerOnIndex(int index) const { return players_.at(index%2); }
 	std::string getPlayerName(int turnCounter);
@@ -29,7 +31,7 @@ public:
 private:
 	void createBuildingCards();
 	void createCharacterCards();
-	std::queue<std::shared_ptr<Card>> buildingsDeck_;
+	std::vector<std::shared_ptr<Card>> buildingsDeck_;
 	std::map<EnumCharacter, std::shared_ptr<Character>> charactersDeck_;
 	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::string> split(std::string& s, char delim);
