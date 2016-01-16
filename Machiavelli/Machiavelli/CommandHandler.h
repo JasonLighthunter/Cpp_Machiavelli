@@ -26,14 +26,22 @@ private:
 	int playerCount_ = 0;
 
 	//methods
-	void writeMessageToActivePlayer(std::string message);
+	void writeMessageToActivePlayer(ClientCommand clientCmd, std::string message);
 	void writeReply(ClientCommand clientCmd, std::string message);
 	void writeMessageToAll(std::string message);
 	std::string prepareMessage(std::string messages);
 
-	void showPossibleCharacters();
+	void showPossibleCharacters(ClientCommand clientCmd);
+	void showTurnInfo(ClientCommand clientCmd);
+	bool requestingPlayerHasRightRole(ClientCommand clientCmd);
 
-	void handleStartCommand(ClientCommand clientCmd);
+	void handleNormalStartCommand(ClientCommand clientCmd);
+	void handleStartCommands(ClientCommand clientCmd, std::string cmd);
+	void handleQuickStartCommand(ClientCommand clientCmd);
+
 	void handleSetupCommand(EnumCharacter character, ClientCommand clientCmd);
+
+	void handlePassCommand(ClientCommand clientCmd);
+	void handleEndOfGame(ClientCommand clientCmd);
 };
 #endif

@@ -30,10 +30,11 @@ public:
 	bool isKing() const { return isKing_; }
 	void setIsKing(bool b);
 
+	void emptyCurrentRoles();
 	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
-	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const {
-		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>();
-	}
+	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles();
+	bool hasRole(EnumCharacter);
+
 	bool buildBuilding(std::string buildingName);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;

@@ -6,6 +6,7 @@
 #include "Card.h"
 #include "Character.h"
 #include "EnumCharacter.h"
+#include "EnumState.h"
 #include "EnumColor.h"
 #include "Player.hpp"
 
@@ -26,8 +27,45 @@ void Game::switchState(EnumState state) {
 	currentState_ = state;
 }
 
-std::string Game::getPlayerName(int turnCounter) {
+string Game::getPlayerName(int turnCounter) {
 	return players_.at(turnCounter%2)->getName();
+}
+
+shared_ptr<Player> Game::getPlayerWithRole(EnumCharacter character) {
+	for(shared_ptr<Player> player : players_) {
+		if(player->hasRole(character)) {
+			return player;
+		}
+	}
+	return false;
+}
+
+int Game::getIndexOfPlayer(shared_ptr<Player> player) {
+	for(size_t i = 0; i < players_.size(); i++) {
+		if(players_[i] == player) {
+			return static_cast<int>(i);
+		}
+	}
+	return -1;
+}
+
+int Game::getIndexOfKing() {
+	for(shared_ptr<Player> player:players_) {
+		if(player->isKing()) {
+			return getIndexOfPlayer(player);
+		}
+		return -1;
+	}
+	return -1; //indien de koning is vermoord return ik -1 dan moet turncounter gereset worden oftwel -3. want de beurt switch 3 keer;
+}
+
+void Game::resetGameToSetup() {
+	for(shared_ptr<Player> player:players_) {
+		player->emptyCurrentRoles();
+		player->setIsKing(false);
+	}
+	createCharacterCards();
+	currentState_=EnumState::SETUP;
 }
 
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
