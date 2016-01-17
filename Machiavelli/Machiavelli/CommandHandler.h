@@ -42,6 +42,13 @@ private:
 	void handleSetupCommand(EnumCharacter character, ClientCommand clientCmd);
 
 	void handlePassCommand(ClientCommand clientCmd);
+	void handleGetGoldCommand(ClientCommand clientCmd);
+	void handleGetBuildingCommand(ClientCommand clientCmd);
+	void handleChooseBuildingCommand(ClientCommand clientCmd);
+	void handleBuildBuildingCommand(ClientCommand clientCmd);
+
 	void handleEndOfGame(ClientCommand clientCmd);
+
+	bool canUseCommand(ClientCommand clientCmd);
 };
 #endif

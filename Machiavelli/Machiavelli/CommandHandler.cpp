@@ -5,7 +5,10 @@
 #include "Socket.h"
 #include "EnumState.h"
 #include "EnumCharacter.h"
+#include "EnumTurnState.h"
 #include "Player.hpp"
+#include "Character.h"
+#include "Card.h"
 
 using namespace std;
 
@@ -51,8 +54,14 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
+	} else if (cmd == "goud") {
+		handleGetGoldCommand(clientCmd);
+	} else if (cmd == "gebouwen") {
+		handleGetBuildingCommand(clientCmd);
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
+	} else if (game_->getPlayerOnIndex(turnCounter_)->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
+		handleChooseBuildingCommand(clientCmd);
 	} else {
 		writeReply(clientCmd, "Onbekend commando ontvangen.");
 	}
@@ -149,33 +158,115 @@ void CommandHandler::handleSetupCommand(EnumCharacter character, ClientCommand c
 }
 
 void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
-	bool hasRightRole = requestingPlayerHasRightRole(clientCmd);
+	bool canUse = canUseCommand(clientCmd);
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		turnCounter_++;
+		game_->switchState(nextState.at(game_->getCurrentState()));
+		showTurnInfo(clientCmd);
+	}
+}
 
-	switch(game_->getCurrentState()) {
-		case EnumState::UNSTARTED:
-		case EnumState::SETUP:
-		case EnumState::END:
-			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
-			break;
-		case EnumState::ASSASSIN_STATE:
-		case EnumState::THIEF_STATE:
-		case EnumState::MAGICIAN_STATE:
-		case EnumState::KING_STATE:
-		case EnumState::BISHOP_STATE:
-		case EnumState::ARCHITECT_STATE:
-		case EnumState::MERCHANT_STATE:
-			if(!hasRightRole) {
-				writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
-			} else {
-				game_->switchState(nextState.at(game_->getCurrentState()));
+void CommandHandler::handleGetGoldCommand(ClientCommand clientCmd) {
+	bool canUse = canUseCommand(clientCmd);
+
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		auto player = game_->getPlayerOnIndex(turnCounter_);
+		auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
+		player->increaseGold(2);
+		character->setGoldOrBuilding(true);
+		writeReply(clientCmd, "Je goud is opgehoogd naar " + to_string(player->getGold()));
+		showTurnInfo(clientCmd);
+	}
+
+}
+
+void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
+	bool canUse = canUseCommand(clientCmd);
+
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		auto player = game_->getPlayerOnIndex(turnCounter_);
+		player->setCurrentTurnState(EnumTurnState::CHOOSE_BUILDING);
+		string message = "\n\r\r\nWelk gebouw wil je in je hand nemen:\r\n";
+		game_->drawCards(2);
+		for (auto card : game_->getDrawnCards()) {
+			message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")\r\n";
+		}
+		message += "[annuleer]\r\n";
+
+		writeMessageToActivePlayer(clientCmd, message);
+	}
+}
+
+void CommandHandler::handleChooseBuildingCommand(ClientCommand clientCmd) {
+	bool canUse = canUseCommand(clientCmd);
+
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		auto player = game_->getPlayerOnIndex(turnCounter_);
+		if (clientCmd.getCmd() == "annuleer") {
+			player->setCurrentTurnState(EnumTurnState::DEFAULT);
+			showTurnInfo(clientCmd);
+		}
+		else {
+			bool success = false;
+			int i = 0;
+			for (auto card : game_->getDrawnCards()) {
+				if (card->getName() == clientCmd.getCmd()) {
+					player->addBuildingCard(card);
+					game_->getDrawnCards().erase(game_->getDrawnCards().begin() + i);
+					game_->resetDrawnCards();
+					player->setCurrentTurnState(EnumTurnState::DEFAULT);
+					auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
+					character->setGoldOrBuilding(true);
+					success = true;
+					break;
+				}
+				i++;
+			}
+			if (success) {
 				showTurnInfo(clientCmd);
 			}
-			break;
-		case EnumState::WARLORD_STATE:
-			game_->switchState(nextState.at(game_->getCurrentState()));
-			break;
-		default:
-			break;
+			else {
+				writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken\n");
+			}
+		}
+	}
+}
+
+void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd)
+{
+	bool canUse = canUseCommand(clientCmd);
+
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		auto player = game_->getPlayerOnIndex(turnCounter_);
+		if (player->getHand().size() > 0) {
+			auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
+			player->setCurrentTurnState(EnumTurnState::BUILD_BUILDING);
+			string message = "\n\r\r\nWelk gebouw wil je bouwen:\r\n";
+
+			for (auto building : player->getHand()) {
+				message += "-   [" + building.second->getName() + "](" + to_string(building.second->getCosts()) + ")\r\n";
+			}
+			message += "[annuleer]\r\n";
+			writeMessageToActivePlayer(clientCmd, message);
+		}
+		else {
+			writeReply(clientCmd, "Je hebt geen gebouwen in je hand");
+		}
 	}
 }
 
@@ -194,17 +285,35 @@ void CommandHandler::handleEndOfGame(ClientCommand clientCmd) {
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 	while(!(game_->getCurrentState()==EnumState::END)) {
-		string message = "\r\r\nHet is nu de beurt van de "+
-						 convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+
-						 "\r\r\nJou rollen:\r\n";
+		string message = "\n\r\r\nHet is nu de beurt van de " +
+			convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()));
+		writeMessageToAll(message);
+		message = "\r\r\nJouw rollen:\r\n";
 
 		for(shared_ptr<Player> player:game_->getPlayers()) {
 			if(player->hasRole(stateToCharacter.at(game_->getCurrentState()))) {
-				string messagePlus=message;
 				for(pair<EnumCharacter, shared_ptr<Character>> pair:player->getRoles()) {
-					messagePlus+="-   "+convertFromEnumCharacter.at(pair.first)+"\r\n";
+					message +="-   "+convertFromEnumCharacter.at(pair.first)+"\r\n";
 				}
-				writeMessageToActivePlayer(clientCmd, messagePlus+"\r\nWat wil je doen\r\n Opties: [pas]");
+				writeMessageToActivePlayer(clientCmd, message);
+				message = "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\n" +
+					"\r\r\nJouw hand:\r\n";
+				for (auto card : player->getHand()) {
+					message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
+				}
+				writeMessageToActivePlayer(clientCmd, message);
+				message = "\r\r\nJouw gebouwen:\r\n";
+				for (auto card : player->getBuildings()) {
+					message = "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
+				}
+				writeMessageToActivePlayer(clientCmd, message);
+
+				if (player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->alreadyGetGoldOrBuilding()) {
+					writeMessageToActivePlayer(clientCmd, "\r\nWat wil je doen\r\n Opties: [pas]");
+				}
+				else {
+					writeMessageToActivePlayer(clientCmd, "\r\nWat wil je doen\r\n Opties: [gebouwen][goud][pas]");
+				}
 				return;
 			}
 		}
@@ -254,6 +363,41 @@ bool CommandHandler::requestingPlayerHasRightRole(ClientCommand clientCmd) {
 		EnumCharacter character = stateToCharacter.at(game_->getCurrentState());
 		return clientCmd.getPlayer()->hasRole(character);
 	} catch(...) {
+		return false;
+	}
+}
+
+bool CommandHandler::canUseCommand(ClientCommand clientCmd) {
+	bool hasRightRole = requestingPlayerHasRightRole(clientCmd);
+
+	switch (game_->getCurrentState()) {
+	case EnumState::UNSTARTED:
+	case EnumState::SETUP:
+	case EnumState::END:
+		return false;
+	case EnumState::ASSASSIN_STATE:
+	case EnumState::THIEF_STATE:
+	case EnumState::MAGICIAN_STATE:
+	case EnumState::KING_STATE:
+	case EnumState::BISHOP_STATE:
+	case EnumState::ARCHITECT_STATE:
+	case EnumState::MERCHANT_STATE:
+	case EnumState::WARLORD_STATE:
+		if (!hasRightRole) {
+			return false;
+		}
+		else {
+			if (clientCmd.getCmd() == "goud" || clientCmd.getCmd() == "gebouwen") {
+				auto player = game_->getPlayerOnIndex(turnCounter_);
+				auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
+				if (!character->alreadyGetGoldOrBuilding()) {
+					return true;
+				}
+				return false;
+			}
+			return true;
+		}
+	default:
 		return false;
 	}
 }
