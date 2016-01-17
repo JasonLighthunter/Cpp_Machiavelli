@@ -43,6 +43,8 @@ private:
 	void handleChooseCharacterCommand(EnumCharacter character, ClientCommand clientCmd);
 	void handleDiscardCharacterCommand(EnumCharacter character, ClientCommand clientCmd);
 
+	void handleAbilityCommand(ClientCommand clientcmd);
+
 	void handlePassCommand(ClientCommand clientCmd);
 	void handleEndOfRound(ClientCommand clientCmd);
 };

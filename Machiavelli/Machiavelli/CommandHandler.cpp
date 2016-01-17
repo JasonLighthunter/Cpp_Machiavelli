@@ -38,8 +38,8 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 	}
 	//on this indentation level: handling of commands.
 		//on this indentation level: handling of state/context.
-	if(cmd=="start"||cmd=="begin"||cmd=="quickstart") {
-		if(game_->getCurrentState()==EnumState::UNSTARTED && playerCount_==2) {
+	if(cmd == "start" || cmd == "begin" || cmd == "quickstart") {
+		if(game_->getCurrentState() == EnumState::UNSTARTED && playerCount_ == 2) {
 			handleStartCommands(clientCmd, cmd);
 		} else {
 			writeReply(clientCmd, "Het is nu niet mogelijk om een spel te starten.");
@@ -49,6 +49,12 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 			handleSetupCommands(convertToEnumCharacter.at(cmd), clientCmd);
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
+		}
+	} else if(cmd=="eigenschap") {
+		handleAbilityCommand(clientCmd);
+	} else if (cmd=="terug"){
+		if(game_->usingAbility()) {
+			game_->setUsingAbility(false);
 		}
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
@@ -179,6 +185,32 @@ void CommandHandler::handleDiscardCharacterCommand(EnumCharacter character, Clie
 	}
 }
 
+void CommandHandler::handleAbilityCommand(ClientCommand clientCmd) {
+	//TODO add code;
+	game_->setUsingAbility(true);
+	switch(game_->getCurrentState()) {
+		case EnumState::ASSASSIN_STATE:
+			writeMessageToActivePlayer(clientCmd, "Welke rol wil je vermoorden?/r/n [dief, magier, koning, prediker, koopman, bouwmeester, condottiere, terug");
+			break;
+		case EnumState::THIEF_STATE:
+			break;
+		case EnumState::MAGICIAN_STATE:
+			break;
+		case EnumState::KING_STATE:
+			break;
+		case EnumState::BISHOP_STATE:
+			break;
+		case EnumState::ARCHITECT_STATE:
+			break;
+		case EnumState::MERCHANT_STATE:
+			break;
+		case EnumState::WARLORD_STATE:
+			break;
+		default:
+			break;
+	}
+}
+
 void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	bool hasRightRole = requestingPlayerHasRightRole(clientCmd);
 
@@ -225,10 +257,8 @@ void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 }
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
-	while(!(game_->getCurrentState() == EnumState::END)) {
-		string message = "\r\r\nHet is nu de beurt van de " +
-						 convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) +
-						 "\r\r\nJou rollen:\r\n";
+	if(!(game_->getCurrentState() == EnumState::END)) {
+		string message = "\r\r\nHet is nu de beurt van de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + "\r\r\nJou rollen:\r\n";
 
 		for(shared_ptr<Player> player : game_->getPlayers()) {
 			if(player->hasRole(stateToCharacter.at(game_->getCurrentState()))) {
@@ -236,17 +266,17 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				for(pair<EnumCharacter, shared_ptr<Character>> pair : player->getRoles()) {
 					messagePlus+= "-   " + convertFromEnumCharacter.at(pair.first) + "\r\n";
 				}
-				writeMessageToActivePlayer(clientCmd, messagePlus + "\r\nWat wil je doen\r\n Opties: [pas]");
+				writeMessageToActivePlayer(clientCmd, messagePlus + "\r\nWat wil je doen\r\n Opties: [pas, eigenschap]");
 				return;
 			}
 		}
 
-		writeMessageToAll("De beurt was aan de " +
-						  convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) +
-						  ", maar die is niet in het spel!");
+		writeMessageToAll("De beurt was aan de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + ", maar die is niet in het spel!");
 		game_->switchState(nextState.at(game_->getCurrentState()));
+		showTurnInfo(clientCmd);
+	} else {
+		handleEndOfRound(clientCmd);
 	}
-	handleEndOfRound(clientCmd);
 }
 
 void CommandHandler::showPossibleCharacters(ClientCommand clientCmd) {

@@ -27,6 +27,9 @@ public:
 
 	int getIndexOfPlayer(std::shared_ptr<Player> player);
 
+	bool usingAbility() { return usingAbility_; }
+	void setUsingAbility(bool b);
+
 	int getIndexOfKing();
 	void resetGameToSetup();
 
@@ -45,5 +48,6 @@ private:
 	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::string> split(std::string& s, char delim);
 	EnumState currentState_;
+	bool usingAbility_ = false;
 };
 
