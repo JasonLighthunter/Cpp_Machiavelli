@@ -68,7 +68,7 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleBackCommand(clientCmd);
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
-	} else if (game_->getPlayerOnIndex(turnCounter_)->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
+	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 		handleChooseBuildingCommand(clientCmd);
 	} else {
 		writeReply(clientCmd, "Onbekend commando ontvangen.");
@@ -295,7 +295,7 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		turnCounter_++;
+		//turnCounter_++;
 		game_->switchState(nextState.at(game_->getCurrentState()));
 		showTurnInfo(clientCmd);
 	}
@@ -325,7 +325,7 @@ void CommandHandler::handleGetGoldCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		auto player = game_->getPlayerOnIndex(turnCounter_);
+		auto player = clientCmd.getPlayer();
 		auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
 		player->increaseGold(2);
 		character->setGoldOrBuilding(true);
@@ -340,7 +340,7 @@ void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		auto player = game_->getPlayerOnIndex(turnCounter_);
+		auto player = clientCmd.getPlayer();
 		player->setCurrentTurnState(EnumTurnState::CHOOSE_BUILDING);
 		string message = "\n\r\r\nWelk gebouw wil je in je hand nemen:\r\n";
 		game_->drawCards(2);
@@ -359,7 +359,7 @@ void CommandHandler::handleChooseBuildingCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		auto player = game_->getPlayerOnIndex(turnCounter_);
+		auto player = clientCmd.getPlayer();
 		if (clientCmd.getCmd() == "annuleer") {
 			player->setCurrentTurnState(EnumTurnState::DEFAULT);
 			showTurnInfo(clientCmd);
@@ -441,7 +441,11 @@ void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 	if(!(game_->getCurrentState() == EnumState::END)) {
-		string message = "\r\r\nHet is nu de beurt van de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + "\r\r\nJou rollen:\r\n";
+		string message = "\n\r\r\nHet is nu de beurt van de " +
+			convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()));
+		writeMessageToAll(message);
+		message = "\r\r\nJou rollen:\r\n";
+
 		for(shared_ptr<Player> player : game_->getPlayers()) {
 			string messagePlus = message;
 			if(player->hasRole(stateToCharacter.at(game_->getCurrentState()))) {
@@ -534,7 +538,7 @@ bool CommandHandler::canUseCommand(ClientCommand clientCmd) {
 		}
 		else {
 			if (clientCmd.getCmd() == "goud" || clientCmd.getCmd() == "gebouwen") {
-				auto player = game_->getPlayerOnIndex(turnCounter_);
+				auto player = clientCmd.getPlayer();
 				auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
 				if (!character->alreadyGetGoldOrBuilding()) {
 					return true;
