@@ -30,6 +30,9 @@ public:
 	bool usingAbility() { return usingAbility_; }
 	void setUsingAbility(bool b);
 
+	bool abilityUsed(EnumCharacter character);
+	void setAbilityUsed(bool b, EnumCharacter character);
+
 	int getIndexOfKing();
 	void resetGameToSetup();
 
@@ -39,7 +42,8 @@ public:
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
 	bool moveCharacterFromDecktoPlayer(EnumCharacter character, std::shared_ptr<Player>);
-	
+
+	void murderCharacter(EnumCharacter character);
 private:
 	void createBuildingCards();
 	void createCharacterCards();

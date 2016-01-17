@@ -45,17 +45,21 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 			writeReply(clientCmd, "Het is nu niet mogelijk om een spel te starten.");
 		}
 	} else if(cmd == "moordenaar" || cmd == "dief" || cmd == "magier" || cmd == "koning" || cmd == "prediker" || cmd == "koopman" || cmd == "bouwmeester" || cmd == "condottiere") {
-		if((game_->getCurrentState() == EnumState::SETUP_CHOOSE || game_->getCurrentState() == EnumState::SETUP_DISCARD) && clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
+		if((game_->getCurrentState() == EnumState::SETUP_CHOOSE ||
+			game_->getCurrentState() == EnumState::SETUP_DISCARD ||
+			game_->getCurrentState() == EnumState::SETUP_CHOOSE_FIRST) &&
+			clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_))
+		{
 			handleSetupCommands(convertToEnumCharacter.at(cmd), clientCmd);
+		} else if(requestingPlayerHasRightRole(clientCmd) && game_->usingAbility()) {
+			handleAbilityCommand(cmd, clientCmd);
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
-	} else if(cmd=="eigenschap") {
-		handleAbilityCommand(clientCmd);
-	} else if (cmd=="terug"){
-		if(game_->usingAbility()) {
-			game_->setUsingAbility(false);
-		}
+	} else if(cmd == "eigenschap") {
+		handleStartAbilityCommand(clientCmd);
+	} else if (cmd == "terug"){
+		handleBackCommand(clientCmd);
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
 	} else {
@@ -69,6 +73,7 @@ void CommandHandler::writeMessageToActivePlayer(ClientCommand clientCmd, string 
 
 	switch(game_->getCurrentState()) {
 		case EnumState::UNSTARTED:
+		case EnumState::SETUP_CHOOSE_FIRST:
 		case EnumState::SETUP_CHOOSE:
 		case EnumState::SETUP_DISCARD:
 			getActiveSocket()->write(prepareMessage(message));
@@ -113,7 +118,7 @@ string CommandHandler::prepareMessage(string messages) {
 void CommandHandler::handleNormalStartCommand(ClientCommand clientCmd){
 	boolean done = false;
 
-	game_->switchState(EnumState::SETUP_CHOOSE);
+	game_->switchState(EnumState::SETUP_CHOOSE_FIRST);
 	game_->init();
 
 	string name = clientCmd.getPlayer()->getName();
@@ -152,6 +157,9 @@ void CommandHandler::handleQuickStartCommand(ClientCommand clientCmd) {
 
 void CommandHandler::handleSetupCommands(EnumCharacter character, ClientCommand clientCmd) {
 	switch(game_->getCurrentState()) {
+		case EnumState::SETUP_CHOOSE_FIRST:
+			handleChooseCharacterFirstCommand(character, clientCmd);
+			break;
 		case EnumState::SETUP_CHOOSE:
 			handleChooseCharacterCommand(character, clientCmd);
 			break;
@@ -160,6 +168,17 @@ void CommandHandler::handleSetupCommands(EnumCharacter character, ClientCommand 
 			break;
 		default:
 			break;
+	}
+}
+void CommandHandler::handleChooseCharacterFirstCommand(EnumCharacter character, ClientCommand clientCmd) {
+	writeMessageToActivePlayer(clientCmd, "Jij koos: "+convertFromEnumCharacter.at(character));
+
+	if(!game_->moveCharacterFromDecktoPlayer(character, clientCmd.getPlayer())) {
+		writeMessageToActivePlayer(clientCmd, "...maar die is niet beschikbaar. Probeer het opnieuw.");
+	} else {
+		turnCounter_++;
+		game_->switchState(EnumState::SETUP_CHOOSE);
+		showPossibleCharacters(clientCmd);
 	}
 }
 void CommandHandler::handleChooseCharacterCommand(EnumCharacter character, ClientCommand clientCmd) {
@@ -185,29 +204,80 @@ void CommandHandler::handleDiscardCharacterCommand(EnumCharacter character, Clie
 	}
 }
 
-void CommandHandler::handleAbilityCommand(ClientCommand clientCmd) {
-	//TODO add code;
+void CommandHandler::handleBackCommand(ClientCommand clientCmd) {
+	if(!(requestingPlayerHasRightRole(clientCmd))) {
+		writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
+	} else if(game_->usingAbility()) {
+		game_->setUsingAbility(false);
+		showTurnInfo(clientCmd);
+	} else {
+		writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
+	}
+}
+
+void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 	game_->setUsingAbility(true);
+	if(game_->abilityUsed(stateToCharacter.at(game_->getCurrentState()))) {
+		if(requestingPlayerHasRightRole(clientCmd)) {
+			writeMessageToActivePlayer(clientCmd, "Je hebt je eigenschap al gebruikt.");
+		}
+		handleBackCommand(clientCmd);
+	} else {
+		switch(game_->getCurrentState()) {
+			case EnumState::ASSASSIN_STATE:
+				writeMessageToActivePlayer(clientCmd, "Welke rol wil je vermoorden?\r\n [dief, magier, koning, prediker, koopman, bouwmeester, condottiere, terug]");
+				break;
+			case EnumState::THIEF_STATE:
+				writeMessageToActivePlayer(clientCmd, "Welke rol wil je bestelen?\r\n [terug]");
+				break;
+			case EnumState::MAGICIAN_STATE:
+				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [terug]");
+				break;
+			case EnumState::KING_STATE:
+			case EnumState::BISHOP_STATE:
+			case EnumState::ARCHITECT_STATE:
+			case EnumState::MERCHANT_STATE:
+				writeMessageToActivePlayer(clientCmd, "De "+convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+" heeft geen speciale eigenschappen (Die hij op deze manier kan gebruiken).\r\n [terug]");
+				break;
+			case EnumState::WARLORD_STATE:
+				writeMessageToActivePlayer(clientCmd, "Wiens gebouwen wil je vernietigen?\r\n [terug]");
+				break;
+			default:
+				break;
+		}
+	}
+}
+void CommandHandler::handleAbilityCommand(string cmd, ClientCommand clientCmd) {
 	switch(game_->getCurrentState()) {
 		case EnumState::ASSASSIN_STATE:
-			writeMessageToActivePlayer(clientCmd, "Welke rol wil je vermoorden?/r/n [dief, magier, koning, prediker, koopman, bouwmeester, condottiere, terug");
+			handleMurderAbilityCommand(cmd, clientCmd);
 			break;
 		case EnumState::THIEF_STATE:
+			//TODO implement
 			break;
 		case EnumState::MAGICIAN_STATE:
+			//TODO implement
 			break;
 		case EnumState::KING_STATE:
-			break;
 		case EnumState::BISHOP_STATE:
-			break;
 		case EnumState::ARCHITECT_STATE:
-			break;
 		case EnumState::MERCHANT_STATE:
+			writeReply(clientCmd, "Je kunt dit commando nu niet gebruiken");
 			break;
 		case EnumState::WARLORD_STATE:
-			break;
+			//TODO implement
 		default:
 			break;
+	}
+	handleBackCommand(clientCmd);
+}
+
+void CommandHandler::handleMurderAbilityCommand(string cmd, ClientCommand clientCmd) {
+	if(cmd != "moordenaar") {
+		game_->murderCharacter(convertToEnumCharacter.at(cmd));
+		game_->setAbilityUsed(true, EnumCharacter::ASSASSIN);
+	} else {
+		writeMessageToActivePlayer(clientCmd, "Je kunt jezelf niet vermoorden.");
 	}
 }
 
@@ -244,15 +314,30 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 }
 
 void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
-	//TODO: change to something better
 	writeMessageToAll("Bedankt voor het meespelen. Nu start de volgende ronde.");
-	int i=game_->getIndexOfKing();
+	int i = game_->getIndexOfKing();
+	bool done = false;
+
 	if(i == -1) {
 		turnCounter_-= 3;
 	} else {
 		turnCounter_= i;
 	}
 	game_->resetGameToSetup();
+	while(!done) {
+		random_device dev;
+		default_random_engine dre{dev()};
+		uniform_int_distribution<int> dist{0, static_cast<int>(convertFromEnumCharacter.size()) - 1};
+		int chosenNumber = dist(dre);
+		try {
+			if(!(static_cast<EnumCharacter>(chosenNumber) == EnumCharacter::KING)) {
+				game_->removeCharacter(static_cast<EnumCharacter>(chosenNumber));
+				done = true;
+			}
+		} catch(...) {
+			cerr << "characterDeck_ does not contain: " << convertFromEnumCharacter.at(static_cast<EnumCharacter>(chosenNumber)) << "\n";
+		}
+	}
 	showPossibleCharacters(clientCmd);
 }
 
@@ -266,12 +351,16 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				for(pair<EnumCharacter, shared_ptr<Character>> pair : player->getRoles()) {
 					messagePlus+= "-   " + convertFromEnumCharacter.at(pair.first) + "\r\n";
 				}
-				writeMessageToActivePlayer(clientCmd, messagePlus + "\r\nWat wil je doen\r\n Opties: [pas, eigenschap]");
+				messagePlus+= "\r\nWat wil je doen\r\n Opties: [pas";
+				if(!game_->abilityUsed(stateToCharacter.at(game_->getCurrentState()))) {
+					messagePlus+= ", eigenschap";
+				}
+				writeMessageToActivePlayer(clientCmd, messagePlus + "]");
 				return;
 			}
 		}
 
-		writeMessageToAll("De beurt was aan de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + ", maar die is niet in het spel!");
+		writeMessageToAll("\r\nDe beurt was aan de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + ", maar die is niet in het spel!");
 		game_->switchState(nextState.at(game_->getCurrentState()));
 		showTurnInfo(clientCmd);
 	} else {
@@ -287,6 +376,7 @@ void CommandHandler::showPossibleCharacters(ClientCommand clientCmd) {
 			resultLine+= convertFromEnumCharacter.at(character.first) + "\r\n";
 		}
 		switch(game_->getCurrentState()) {
+			case EnumState::SETUP_CHOOSE_FIRST:
 			case EnumState::SETUP_CHOOSE:
 				resultLine+= "\n\rKies de rol die je wilt hebben door de naam in te geven.";
 				break;

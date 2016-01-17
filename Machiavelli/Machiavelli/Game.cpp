@@ -71,9 +71,8 @@ int Game::getIndexOfKing() {
 		if(player->isKing()) {
 			return getIndexOfPlayer(player);
 		}
-		return -1;
 	}
-	return -1; //indien de koning is vermoord return ik -1 dan moet turncounter gereset worden oftwel -3. want de beurt switch 3 keer;
+	return -1; //indien de koning is vermoord return ik -1 dan moet turncounter gereset worden oftwel -3, want de beurt switch 3 keer;
 }
 shared_ptr<Player> Game::getPlayerWithRole(EnumCharacter character) {
 	for(shared_ptr<Player> player : players_) {
@@ -92,13 +91,32 @@ void Game::setUsingAbility(bool b) {
 	usingAbility_ = b;
 }
 
+bool Game::abilityUsed(EnumCharacter character) {
+	for(pair<EnumCharacter, shared_ptr<Character>> role:getPlayerWithRole(character)->getRoles()) {
+		if(role.first == character) {
+			return role.second->abilityUsed();
+		}
+	}
+	return false;
+}
+void Game::setAbilityUsed(bool b, EnumCharacter character) {
+	for(shared_ptr<Player> player:players_) {
+		for(pair<EnumCharacter, shared_ptr<Character>> role : player->getRoles()) {
+			if(role.first == character) {
+				role.second->setAbilityUsed(b);
+				return;
+			}
+		}
+	}
+}
+
 void Game::resetGameToSetup() {
 	for(shared_ptr<Player> player : players_) {
 		player->emptyCurrentRoles();
 		player->setIsKing(false);
 	}
 	createCharacterCards();
-	currentState_=EnumState::SETUP_CHOOSE;
+	currentState_ = EnumState::SETUP_CHOOSE_FIRST;
 }
 
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
@@ -114,6 +132,12 @@ bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Pla
 		return false;
 	}
 	return true;
+}
+
+void Game::murderCharacter(EnumCharacter character) {
+	for(shared_ptr<Player> player : players_) {
+		player->murderRole(character);
+	}
 }
 
 void Game::createBuildingCards() {
@@ -145,9 +169,9 @@ void Game::createCharacterCards() {
 
 	string line;
 	while(getline(input_file, line)) {
-		vector<string> parts=split(line, ';');
-		shared_ptr<Character> buildingCard{new Character{stoi(parts[0]), convertToEnumCharacter.at(parts[1])}};
-		charactersDeck_.emplace(convertToEnumCharacter.at(parts[1]), buildingCard);
+		string s = split(line, ';')[1];
+		shared_ptr<Character> buildingCard{new Character{convertToEnumCharacter.at(s)}};
+		charactersDeck_.emplace(convertToEnumCharacter.at(s), buildingCard);
 	}
 }
 
