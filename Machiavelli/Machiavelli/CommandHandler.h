@@ -33,7 +33,7 @@ private:
 
 	void showPossibleCharacters(ClientCommand clientCmd);
 	void showTurnInfo(ClientCommand clientCmd); // toont mogelijke acties voor een beurt.
-	bool requestingPlayerHasRightRole(ClientCommand clientCmd); //geeft aan of een speler de juiste rol heeft; 
+	bool requestingPlayerHasRightRole(ClientCommand clientCmd); //geeft aan of een speler de juiste rol heeft;
 
 	void handleNormalStartCommand(ClientCommand clientCmd); //begint gewone setup
 	void handleStartCommands(ClientCommand clientCmd, std::string cmd); //kiest of gewone of quickstartup wordt gekozen;
@@ -52,5 +52,12 @@ private:
 
 	void handlePassCommand(ClientCommand clientCmd); //beeindigt de beurt.
 	void handleEndOfRound(ClientCommand clientCmd); //TODO checken op win conditites. start nieuew ronde.
+
+	void handleGetGoldCommand(ClientCommand clientCmd);
+
+	void handleGetBuildingCommand(ClientCommand clientCmd);
+	void handleChooseBuildingCommand(ClientCommand clientCmd);
+	void handleBuildBuildingCommand(ClientCommand clientCmd);
+	bool canUseCommand(ClientCommand clientCmd);
 };
 #endif

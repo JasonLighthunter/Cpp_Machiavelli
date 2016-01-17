@@ -119,6 +119,26 @@ void Game::resetGameToSetup() {
 	currentState_ = EnumState::SETUP_CHOOSE_FIRST;
 }
 
+void Game::drawCards(int amount)
+{
+	random_device dev;
+	default_random_engine dre{ dev() };
+	for (int i = 0; i < amount; i++) {
+		uniform_int_distribution<int> dist{ 0, static_cast<int>(buildingsDeck_.size()) - 1 };
+		int randomNumber = dist(dre);
+		drawnCards_.push_back(buildingsDeck_.at(randomNumber));
+		buildingsDeck_.erase(buildingsDeck_.begin() + randomNumber);
+	}
+}
+
+void Game::resetDrawnCards()
+{
+	for (auto card : drawnCards_) {
+		buildingsDeck_.push_back(card);
+	}
+	drawnCards_.clear();
+}
+
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
 	pair<EnumCharacter, shared_ptr<Character>> returnValue = {character, charactersDeck_.at(character)};
 	charactersDeck_.erase(character);
