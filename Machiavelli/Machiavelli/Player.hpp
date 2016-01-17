@@ -32,11 +32,11 @@ public:
 
 	std::map<int, std::shared_ptr<Card>> getHand() const { return hand_; }
 	void addBuildingCard(std::shared_ptr<Card> card);
-
+	void emptyCurrentRoles();
 	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
-	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles() const {
-		return std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>>();
-	}
+	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles();
+	bool hasRole(EnumCharacter);
+
 	bool buildBuilding(std::string buildingName);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;

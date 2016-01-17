@@ -24,13 +24,33 @@ void Player::setIsKing(bool b) {
 	isKing_ = b;
 }
 
-void Player::addBuildingCard(std::shared_ptr<Card> card)
-{
+
+void Player::addBuildingCard(std::shared_ptr<Card> card) {
 	hand_[card->getId()] = card;
+}
+
+void Player::emptyCurrentRoles() {
+	currentRoles_.clear();
 }
 
 void Player::addRole(pair<EnumCharacter, shared_ptr<Character>> newRole) {
 	currentRoles_.emplace(newRole);
+	if(newRole.first==EnumCharacter::KING) {
+		isKing_=true;
+	}
+}
+
+vector<pair<EnumCharacter, shared_ptr<Character>>> Player::getRoles() {
+	return vector<pair<EnumCharacter, shared_ptr<Character>>>(currentRoles_.begin(), currentRoles_.end());
+}
+
+bool Player::hasRole(EnumCharacter character) {
+	for(pair<EnumCharacter, shared_ptr<Character>> role : getRoles()) {
+		if(character == role.first) {
+			return true;
+		}
+	}
+	return false;
 }
 
 bool Player::buildBuilding(string buildingName) {

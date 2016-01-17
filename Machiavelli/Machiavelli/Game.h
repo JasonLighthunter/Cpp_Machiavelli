@@ -19,8 +19,15 @@ public:
 	void init();
 
 	void addPlayer(std::shared_ptr<Player> player);
-	std::shared_ptr<Player> getPlayerOnIndex(int index) const { return players_.at(index%2); }
+	std::vector<std::shared_ptr<Player>> getPlayers() const { return players_; }
+	std::shared_ptr<Player> getPlayerOnIndex(int turncounter) const { return players_.at(turncounter % 2); }
 	std::string getPlayerName(int turnCounter);
+	std::shared_ptr<Player> getPlayerWithRole(EnumCharacter character);
+
+	int getIndexOfPlayer(std::shared_ptr<Player> player);
+
+	int getIndexOfKing();
+	void resetGameToSetup();
 
 	void switchState(EnumState state);
 	EnumState getCurrentState() const { return currentState_; }
@@ -28,6 +35,7 @@ public:
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
 	bool moveCharacterFromDecktoPlayer(EnumCharacter character, std::shared_ptr<Player>);
+	
 private:
 	void createBuildingCards();
 	void createCharacterCards();
