@@ -36,6 +36,20 @@ void Game::init() {
 		}
 	}
 }
+void Game::initQuickStart() {
+	//players_[0] krijgt moordenaar en koning
+	moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, players_[0]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::KING, players_[0]);
+	//players_[1] krijgt dief en koopman
+	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::THIEF, players_[1]);
+	//remove everything else
+	removeCharacter(EnumCharacter::MAGICIAN);
+	removeCharacter(EnumCharacter::BISHOP);
+	removeCharacter(EnumCharacter::ARCHITECT);
+	removeCharacter(EnumCharacter::WARLORD);
+	currentState_=EnumState::ASSASSIN_STATE;
+}
 
 void Game::addPlayer(shared_ptr<Player> player) {
 	players_.push_back(player);
@@ -46,7 +60,7 @@ void Game::switchState(EnumState state) {
 }
 
 string Game::getPlayerName(int turnCounter) {
-	return players_.at(turnCounter%2)->getName();
+	return players_.at(turnCounter % 2)->getName();
 }
 
 shared_ptr<Player> Game::getPlayerWithRole(EnumCharacter character) {
@@ -68,7 +82,7 @@ int Game::getIndexOfPlayer(shared_ptr<Player> player) {
 }
 
 int Game::getIndexOfKing() {
-	for(shared_ptr<Player> player:players_) {
+	for(shared_ptr<Player> player : players_) {
 		if(player->isKing()) {
 			return getIndexOfPlayer(player);
 		}
@@ -78,12 +92,12 @@ int Game::getIndexOfKing() {
 }
 
 void Game::resetGameToSetup() {
-	for(shared_ptr<Player> player:players_) {
+	for(shared_ptr<Player> player : players_) {
 		player->emptyCurrentRoles();
 		player->setIsKing(false);
 	}
 	createCharacterCards();
-	currentState_=EnumState::SETUP;
+	currentState_=EnumState::SETUP_CHOOSE;
 }
 
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
@@ -96,7 +110,7 @@ bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Pla
 	try{
 		player->addRole(removeCharacter(character));
 	} catch(...) {
-		cerr<<convertFromEnumCharacter.at(character)<<" is not in the characterdeck.\n\r";
+		cerr << convertFromEnumCharacter.at(character) << " is not in the characterdeck.\n\r";
 		return false;
 	}
 	return true;

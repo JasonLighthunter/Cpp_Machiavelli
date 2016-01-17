@@ -17,6 +17,7 @@ public:
 	~Game();
 
 	void init();
+	void initQuickStart();
 
 	void addPlayer(std::shared_ptr<Player> player);
 	std::vector<std::shared_ptr<Player>> getPlayers() const { return players_; }

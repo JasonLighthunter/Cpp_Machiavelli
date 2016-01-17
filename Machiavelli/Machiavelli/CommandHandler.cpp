@@ -44,10 +44,9 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		} else {
 			writeReply(clientCmd, "Het is nu niet mogelijk om een spel te starten.");
 		}
-	} else if(cmd == "moordenaar" || cmd == "dief" || cmd == "magier" || cmd == "koning" ||
-			  cmd == "prediker"	  || cmd == "koopman" || cmd == "bouwmeester" || cmd == "condottiere") {
-		if(game_->getCurrentState() == EnumState::SETUP && clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
-			handleSetupCommand(convertToEnumCharacter.at(cmd), clientCmd);
+	} else if(cmd == "moordenaar" || cmd == "dief" || cmd == "magier" || cmd == "koning" || cmd == "prediker" || cmd == "koopman" || cmd == "bouwmeester" || cmd == "condottiere") {
+		if((game_->getCurrentState() == EnumState::SETUP_CHOOSE || game_->getCurrentState() == EnumState::SETUP_DISCARD) && clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
+			handleSetupCommands(convertToEnumCharacter.at(cmd), clientCmd);
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
@@ -64,7 +63,8 @@ void CommandHandler::writeMessageToActivePlayer(ClientCommand clientCmd, string 
 
 	switch(game_->getCurrentState()) {
 		case EnumState::UNSTARTED:
-		case EnumState::SETUP:
+		case EnumState::SETUP_CHOOSE:
+		case EnumState::SETUP_DISCARD:
 			getActiveSocket()->write(prepareMessage(message));
 			break;
 		case EnumState::END:
@@ -105,13 +105,30 @@ string CommandHandler::prepareMessage(string messages) {
 }
 
 void CommandHandler::handleNormalStartCommand(ClientCommand clientCmd){
-	game_->switchState(EnumState::SETUP);
+	boolean done = false;
+
+	game_->switchState(EnumState::SETUP_CHOOSE);
 	game_->init();
+
 	string name = clientCmd.getPlayer()->getName();
 	if(!(game_->getPlayerName(turnCounter_) == name)) {
 		turnCounter_++;
 	}
 	writeMessageToAll("Het spel begint nu.\n\r" + name + " is de eerste ronde de koning!");
+	while(!done) {
+		random_device dev;
+		default_random_engine dre{dev()};
+		uniform_int_distribution<int> dist{0, static_cast<int>(convertFromEnumCharacter.size())-1};
+		int chosenNumber=dist(dre);
+		try {
+			if(!(static_cast<EnumCharacter>(chosenNumber) == EnumCharacter::KING)) {
+				game_->removeCharacter(static_cast<EnumCharacter>(chosenNumber));
+				done = true;
+			}
+		} catch(...) {
+			cerr << "characterDeck_ does not contain: " << convertFromEnumCharacter.at(static_cast<EnumCharacter>(chosenNumber)) << "\n";
+		}
+	}
 	showPossibleCharacters(clientCmd);
 }
 void CommandHandler::handleStartCommands(ClientCommand clientCmd, string cmd) {
@@ -122,29 +139,43 @@ void CommandHandler::handleStartCommands(ClientCommand clientCmd, string cmd) {
 	}
 }
 void CommandHandler::handleQuickStartCommand(ClientCommand clientCmd) {
-	//players_[0] krijgt moordenaar en koning
-	game_->moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, game_->getPlayers().at(0));
-	game_->moveCharacterFromDecktoPlayer(EnumCharacter::KING,	  game_->getPlayers().at(0));
-	//players_[1] krijgt dief en koopman
-	game_->moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, game_->getPlayers().at(1));
-	game_->moveCharacterFromDecktoPlayer(EnumCharacter::THIEF,	  game_->getPlayers().at(1));
-	//remove everything else
-	game_->removeCharacter(EnumCharacter::MAGICIAN);
-	game_->removeCharacter(EnumCharacter::BISHOP);
-	game_->removeCharacter(EnumCharacter::ARCHITECT);
-	game_->removeCharacter(EnumCharacter::WARLORD);
-	game_->switchState(EnumState::ASSASSIN_STATE);
+	game_->initQuickStart();
 	writeMessageToAll("");
 	showTurnInfo(clientCmd);
 }
 
-void CommandHandler::handleSetupCommand(EnumCharacter character, ClientCommand clientCmd) {
+void CommandHandler::handleSetupCommands(EnumCharacter character, ClientCommand clientCmd) {
+	switch(game_->getCurrentState()) {
+		case EnumState::SETUP_CHOOSE:
+			handleChooseCharacterCommand(character, clientCmd);
+			break;
+		case EnumState::SETUP_DISCARD:
+			handleDiscardCharacterCommand(character, clientCmd);
+			break;
+		default:
+			break;
+	}
+}
+void CommandHandler::handleChooseCharacterCommand(EnumCharacter character, ClientCommand clientCmd) {
 	writeMessageToActivePlayer(clientCmd, "Jij koos: " + convertFromEnumCharacter.at(character));
+	
 	if(!game_->moveCharacterFromDecktoPlayer(character, clientCmd.getPlayer())) {
 		writeMessageToActivePlayer(clientCmd, "...maar die is niet beschikbaar. Probeer het opnieuw.");
 	} else {
+		game_->switchState(EnumState::SETUP_DISCARD);
+		showPossibleCharacters(clientCmd);
+	}
+}
+void CommandHandler::handleDiscardCharacterCommand(EnumCharacter character, ClientCommand clientCmd) {
+	writeMessageToActivePlayer(clientCmd, "Jij koos: " + convertFromEnumCharacter.at(character));
+	
+	try {
+		game_->removeCharacter(character);
+		game_->switchState(EnumState::SETUP_CHOOSE);
 		turnCounter_++;
 		showPossibleCharacters(clientCmd);
+	} catch(...) {
+		writeMessageToActivePlayer(clientCmd, "...maar die is niet beschikbaar. Probeer het opnieuw.");
 	}
 }
 
@@ -153,7 +184,8 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 
 	switch(game_->getCurrentState()) {
 		case EnumState::UNSTARTED:
-		case EnumState::SETUP:
+		case EnumState::SETUP_CHOOSE:
+		case EnumState::SETUP_DISCARD:
 		case EnumState::END:
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 			break;
@@ -179,80 +211,73 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	}
 }
 
-void CommandHandler::handleEndOfGame(ClientCommand clientCmd) {
+void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 	//TODO: change to something better
 	writeMessageToAll("Bedankt voor het meespelen. Nu start de volgende ronde.");
 	int i=game_->getIndexOfKing();
-	if(i==-1) {
-		turnCounter_-=3;
+	if(i == -1) {
+		turnCounter_-= 3;
 	} else {
-		turnCounter_=i;
+		turnCounter_= i;
 	}
 	game_->resetGameToSetup();
 	showPossibleCharacters(clientCmd);
 }
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
-	while(!(game_->getCurrentState()==EnumState::END)) {
-		string message = "\r\r\nHet is nu de beurt van de "+
-						 convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+
+	while(!(game_->getCurrentState() == EnumState::END)) {
+		string message = "\r\r\nHet is nu de beurt van de " +
+						 convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) +
 						 "\r\r\nJou rollen:\r\n";
 
-		for(shared_ptr<Player> player:game_->getPlayers()) {
+		for(shared_ptr<Player> player : game_->getPlayers()) {
 			if(player->hasRole(stateToCharacter.at(game_->getCurrentState()))) {
-				string messagePlus=message;
-				for(pair<EnumCharacter, shared_ptr<Character>> pair:player->getRoles()) {
-					messagePlus+="-   "+convertFromEnumCharacter.at(pair.first)+"\r\n";
+				string messagePlus = message;
+				for(pair<EnumCharacter, shared_ptr<Character>> pair : player->getRoles()) {
+					messagePlus+= "-   " + convertFromEnumCharacter.at(pair.first) + "\r\n";
 				}
-				writeMessageToActivePlayer(clientCmd, messagePlus+"\r\nWat wil je doen\r\n Opties: [pas]");
+				writeMessageToActivePlayer(clientCmd, messagePlus + "\r\nWat wil je doen\r\n Opties: [pas]");
 				return;
 			}
 		}
 
-		writeMessageToAll("De beurt was aan de "+
-						  convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+
+		writeMessageToAll("De beurt was aan de " +
+						  convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) +
 						  ", maar die is niet in het spel!");
 		game_->switchState(nextState.at(game_->getCurrentState()));
 	}
-	handleEndOfGame(clientCmd);
+	handleEndOfRound(clientCmd);
 }
 
 void CommandHandler::showPossibleCharacters(ClientCommand clientCmd) {
-	boolean done = false;
 	string resultLine = "\n\n\r";
 
-	if(game_->getCharactersDeck().size()>0) {
-		while(!done) {
-			random_device dev;
-			default_random_engine dre{dev()};
-			uniform_int_distribution<int> dist{0, static_cast<int>(convertFromEnumCharacter.size())-1};
-			int chosenNumber=dist(dre);
-			try {
-				if(!(static_cast<EnumCharacter>(chosenNumber)==EnumCharacter::KING)) {
-					game_->removeCharacter(static_cast<EnumCharacter>(chosenNumber));
-					done=true;
-				}
-			} catch(...) {
-				cerr<<"characterDeck_ does not contain: "<<convertFromEnumCharacter.at(static_cast<EnumCharacter>(chosenNumber))<<"\n";
-			}
+	if(game_->getCharactersDeck().size() > 0) {
+		for(pair<EnumCharacter, shared_ptr<Character>> character : game_->getCharactersDeck()) {
+			resultLine+= convertFromEnumCharacter.at(character.first) + "\r\n";
 		}
-
-		for(pair<EnumCharacter, shared_ptr<Character>> character:game_->getCharactersDeck()) {
-			resultLine+=convertFromEnumCharacter.at(character.first)+"\r\n";
+		switch(game_->getCurrentState()) {
+			case EnumState::SETUP_CHOOSE:
+				resultLine+= "\n\rKies de rol die je wilt hebben door de naam in te geven.";
+				break;
+			case EnumState::SETUP_DISCARD:
+				resultLine+= "\n\rKies de rol die je wilt afleggen door de naam in te geven.";
+				break;
+			default:
+				cerr << "This Shoud not happen. Non setup state encountered during setup;";
+				break;
 		}
-		resultLine+="\n\rKies de rol die je wilt hebben door de naam in te geven.";
 		writeMessageToActivePlayer(clientCmd, resultLine);
 	} else {
-		cout<<"CharacterDeck_ is out of cards start game.\n\r";
-		game_->switchState(nextState.at(game_->getCurrentState()));
+		cout << "CharacterDeck_ is out of cards start game.\n\r";
+		game_->switchState(EnumState::ASSASSIN_STATE);
 		showTurnInfo(clientCmd);
 	}
 }
 
 bool CommandHandler::requestingPlayerHasRightRole(ClientCommand clientCmd) {
 	try {
-		EnumCharacter character = stateToCharacter.at(game_->getCurrentState());
-		return clientCmd.getPlayer()->hasRole(character);
+		return clientCmd.getPlayer()->hasRole(stateToCharacter.at(game_->getCurrentState()));
 	} catch(...) {
 		return false;
 	}

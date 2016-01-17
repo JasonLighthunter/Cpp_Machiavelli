@@ -39,9 +39,11 @@ private:
 	void handleStartCommands(ClientCommand clientCmd, std::string cmd);
 	void handleQuickStartCommand(ClientCommand clientCmd);
 
-	void handleSetupCommand(EnumCharacter character, ClientCommand clientCmd);
+	void handleSetupCommands(EnumCharacter character, ClientCommand clientCmd);
+	void handleChooseCharacterCommand(EnumCharacter character, ClientCommand clientCmd);
+	void handleDiscardCharacterCommand(EnumCharacter character, ClientCommand clientCmd);
 
 	void handlePassCommand(ClientCommand clientCmd);
-	void handleEndOfGame(ClientCommand clientCmd);
+	void handleEndOfRound(ClientCommand clientCmd);
 };
 #endif
