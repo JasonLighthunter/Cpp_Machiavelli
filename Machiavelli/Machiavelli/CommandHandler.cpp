@@ -454,7 +454,7 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				}
 				messagePlus+= "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\r\r\n\nJouw hand:\r\n";
 				for (auto card : player->getHand()) {
-					message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
+					messagePlus += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
 				}
 				messagePlus+= "\r\r\nJouw gebouwen:\r\n";
 				for (auto card : player->getBuildings()) {
