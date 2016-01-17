@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <random>
 #include "Game.h"
 #include "Card.h"
 #include "Character.h"
@@ -18,6 +19,23 @@ Game::Game() {
 }
 
 Game::~Game() {}
+
+void Game::init() {
+	random_device dev;
+	default_random_engine dre{ dev() };
+
+	for (auto player : players_) {
+		player->increaseGold(2);
+
+		while (player->getHand().size() < 4) {
+			uniform_int_distribution<int> dist{ 1, static_cast<int>(buildingsDeck_.size()) - 1 };
+			int pos = dist(dre);
+			auto card = buildingsDeck_.at(pos);
+			player->addBuildingCard(card);
+			buildingsDeck_.erase(buildingsDeck_.begin() + pos);
+		}
+	}
+}
 
 void Game::addPlayer(shared_ptr<Player> player) {
 	players_.push_back(player);
@@ -89,7 +107,7 @@ void Game::createBuildingCards() {
 	string textfile{ "../Bouwkaarten.csv" };
 	ifstream input_file{ textfile };
 	if (!input_file) {
-		cout << "404: Items text file not found.\n";
+		cout << "404: Bouwkaarten.csv not found.\n";
 		exit(0);
 	}
 
@@ -98,7 +116,7 @@ void Game::createBuildingCards() {
 	while (getline(input_file, line)) {
 		vector<string> parts = split(line, ';');
 		shared_ptr<Card> buildingCard{ new Card{lineNumber, parts[0], stoi(parts[1]), convertToEnumColor.at(parts[2])} };
-		buildingsDeck_.push(buildingCard);
+		buildingsDeck_.push_back(buildingCard);
 		lineNumber++;
 	}
 }
@@ -108,7 +126,7 @@ void Game::createCharacterCards() {
 	string textfile{ "../Karakterkaarten.csv" };
 	ifstream input_file{ textfile };
 	if (!input_file) {
-		cout << "404: Items text file not found.\n";
+		cout << "404: Karakterkaarten.csv not found.\n";
 		exit(0);
 	}
 

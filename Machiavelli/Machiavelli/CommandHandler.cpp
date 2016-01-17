@@ -106,6 +106,7 @@ string CommandHandler::prepareMessage(string messages) {
 
 void CommandHandler::handleNormalStartCommand(ClientCommand clientCmd){
 	game_->switchState(EnumState::SETUP);
+	game_->init();
 	string name = clientCmd.getPlayer()->getName();
 	if(!(game_->getPlayerName(turnCounter_) == name)) {
 		turnCounter_++;
@@ -183,7 +184,7 @@ void CommandHandler::handleEndOfGame(ClientCommand clientCmd) {
 	writeMessageToAll("Bedankt voor het meespelen. Nu start de volgende ronde.");
 	int i=game_->getIndexOfKing();
 	if(i==-1) {
-		turnCounter_-3;
+		turnCounter_-=3;
 	} else {
 		turnCounter_=i;
 	}
