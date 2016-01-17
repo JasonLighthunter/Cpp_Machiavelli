@@ -6,6 +6,7 @@
 #include "EnumState.h"
 #include "EnumCharacter.h"
 #include "EnumTurnState.h"
+#include "EnumColor.h"
 #include "Player.hpp"
 #include "Character.h"
 #include "Card.h"
@@ -468,11 +469,11 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				}
 				messagePlus+= "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\r\r\n\nJouw hand:\r\n";
 				for (auto card : player->getHand()) {
-					messagePlus += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
+					messagePlus += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")("+ convertEnumColorToString.at(card.second->getColor()) +")\r\n";
 				}
 				messagePlus+= "\r\r\nJouw gebouwen:\r\n";
 				for (auto card : player->getBuildings()) {
-					messagePlus+= "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")\r\n";
+					messagePlus+= "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")("+ convertEnumColorToString.at(card.second->getColor()) +")\r\n";
 				}
 				messagePlus+= "\r\nWat wil je doen\r\n Opties: [pas";
 				if(!game_->abilityUsed(stateToCharacter.at(game_->getCurrentState()))) {
