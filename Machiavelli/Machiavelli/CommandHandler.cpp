@@ -62,7 +62,9 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleGetGoldCommand(clientCmd);
 	} else if(cmd == "gebouwen"){
 		handleGetBuildingCommand(clientCmd);
-	} else if(cmd == "eigenschap") {
+	} else if (cmd == "bouw") {
+		handleBuildBuildingCommand(clientCmd);
+	} else if (cmd == "eigenschap") {
 		handleStartAbilityCommand(clientCmd);
 	} else if (cmd == "terug"){
 		handleBackCommand(clientCmd);
@@ -70,6 +72,8 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handlePassCommand(clientCmd);
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 		handleChooseBuildingCommand(clientCmd);
+	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
+		handleChooseToBuildCommand(clientCmd);
 	} else {
 		writeReply(clientCmd, "Onbekend commando ontvangen.");
 	}
@@ -295,28 +299,9 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		//turnCounter_++;
 		game_->switchState(nextState.at(game_->getCurrentState()));
 		showTurnInfo(clientCmd);
 	}
-	//switch(game_->getCurrentState()) {
-		//case EnumState::UNSTARTED:
-		//case EnumState::SETUP_CHOOSE:
-		//case EnumState::SETUP_DISCARD:
-		//case EnumState::END:
-		//	writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
-		//	break;
-		//case EnumState::ASSASSIN_STATE:
-		//case EnumState::THIEF_STATE:
-		//case EnumState::MAGICIAN_STATE:
-		//case EnumState::KING_STATE:
-		//case EnumState::BISHOP_STATE:
-		//case EnumState::ARCHITECT_STATE:
-		//case EnumState::MERCHANT_STATE:
-		//	if(!hasRightRole) {
-		//		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
-		//	} else {
-		//		game_->switchState(nextState.at(game_->getCurrentState()));
 }
 
 void CommandHandler::handleGetGoldCommand(ClientCommand clientCmd) {
@@ -394,7 +379,7 @@ void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		auto player = game_->getPlayerOnIndex(turnCounter_);
+		auto player = clientCmd.getPlayer();
 		if (player->getHand().size() > 0) {
 			auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
 			player->setCurrentTurnState(EnumTurnState::BUILD_BUILDING);
@@ -411,6 +396,35 @@ void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd) {
 	}
 }
 
+
+void CommandHandler::handleChooseToBuildCommand(ClientCommand clientCmd) {
+	bool canUse = canUseCommand(clientCmd);
+
+	if (!canUse) {
+		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
+	}
+	else {
+		auto player = clientCmd.getPlayer();
+		auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
+		if (clientCmd.getCmd() == "annuleer" || character->buildedBuilding()) {
+			if (character->buildedBuilding()) {
+				writeMessageToActivePlayer(clientCmd, "Je hebt al een gebouw gebouwd.");
+			}
+			player->setCurrentTurnState(EnumTurnState::DEFAULT);
+			showTurnInfo(clientCmd);
+		}
+		else {
+			bool success = player->buildBuilding(clientCmd.getCmd());
+			if (success) {
+				character->setBuildedBuilding(true);
+				showTurnInfo(clientCmd);
+			}
+			else {
+				writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken\n");
+			}
+		}
+	}
+}
 void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 	writeMessageToAll("Bedankt voor het meespelen. Nu start de volgende ronde.");
 	int i = game_->getIndexOfKing();
@@ -466,6 +480,9 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				}
 				if(!player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->alreadyGetGoldOrBuilding()) {
 					messagePlus+= ", goud, gebouwen";
+				}
+				if (!player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->buildedBuilding()) {
+					messagePlus += ", bouw";
 				}
 				writeMessageToActivePlayer(clientCmd, messagePlus + "]");
 				return;

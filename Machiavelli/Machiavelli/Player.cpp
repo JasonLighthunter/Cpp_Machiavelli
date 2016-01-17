@@ -57,7 +57,13 @@ bool Player::hasRole(EnumCharacter character) {
 }
 
 bool Player::buildBuilding(string buildingName) {
-	EnumCard enumCard = convertToEnumCard.at(buildingName);
+	auto a = convertToEnumCard.find(buildingName);
+	
+	if (a == convertToEnumCard.end()) {
+		return false;
+	}
+	
+	EnumCard enumCard = a->second;
 
 	auto result = find_if(hand_.begin(), hand_.end(), FindStruct(enumCard));
 	if (result != hand_.end()) {
