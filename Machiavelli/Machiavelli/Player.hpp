@@ -38,6 +38,8 @@ public:
 	bool hasRole(EnumCharacter);
 
 	bool buildBuilding(std::string buildingName);
+
+	void murderRole(EnumCharacter character);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;
 	std::map<int, std::shared_ptr<Card>> buildings_;

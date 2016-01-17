@@ -36,19 +36,44 @@ void Game::init() {
 		}
 	}
 }
+void Game::initQuickStart() {
+	//players_[0] krijgt moordenaar en koning
+	moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, players_[0]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::KING, players_[0]);
+	//players_[1] krijgt dief en koopman
+	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::THIEF, players_[1]);
+	//remove everything else
+	removeCharacter(EnumCharacter::MAGICIAN);
+	removeCharacter(EnumCharacter::BISHOP);
+	removeCharacter(EnumCharacter::ARCHITECT);
+	removeCharacter(EnumCharacter::WARLORD);
+	currentState_=EnumState::ASSASSIN_STATE;
+}
 
 void Game::addPlayer(shared_ptr<Player> player) {
 	players_.push_back(player);
 }
 
-void Game::switchState(EnumState state) {
-	currentState_ = state;
-}
-
 string Game::getPlayerName(int turnCounter) {
-	return players_.at(turnCounter%2)->getName();
+	return players_.at(turnCounter % 2)->getName();
 }
-
+int Game::getIndexOfPlayer(shared_ptr<Player> player) {
+	for(size_t i = 0; i < players_.size(); i++) {
+		if(players_[i] == player) {
+			return static_cast<int>(i);
+		}
+	}
+	return -1;
+}
+int Game::getIndexOfKing() {
+	for(shared_ptr<Player> player : players_) {
+		if(player->isKing()) {
+			return getIndexOfPlayer(player);
+		}
+	}
+	return -1; //indien de koning is vermoord return ik -1 dan moet turncounter gereset worden oftwel -3, want de beurt switch 3 keer;
+}
 shared_ptr<Player> Game::getPlayerWithRole(EnumCharacter character) {
 	for(shared_ptr<Player> player : players_) {
 		if(player->hasRole(character)) {
@@ -58,32 +83,40 @@ shared_ptr<Player> Game::getPlayerWithRole(EnumCharacter character) {
 	return false;
 }
 
-int Game::getIndexOfPlayer(shared_ptr<Player> player) {
-	for(size_t i = 0; i < players_.size(); i++) {
-		if(players_[i] == player) {
-			return static_cast<int>(i);
-		}
-	}
-	return -1;
+void Game::switchState(EnumState state) {
+	currentState_ = state;
 }
 
-int Game::getIndexOfKing() {
-	for(shared_ptr<Player> player:players_) {
-		if(player->isKing()) {
-			return getIndexOfPlayer(player);
+void Game::setUsingAbility(bool b) {
+	usingAbility_ = b;
+}
+
+bool Game::abilityUsed(EnumCharacter character) {
+	for(pair<EnumCharacter, shared_ptr<Character>> role:getPlayerWithRole(character)->getRoles()) {
+		if(role.first == character) {
+			return role.second->abilityUsed();
 		}
-		return -1;
 	}
-	return -1; //indien de koning is vermoord return ik -1 dan moet turncounter gereset worden oftwel -3. want de beurt switch 3 keer;
+	return false;
+}
+void Game::setAbilityUsed(bool b, EnumCharacter character) {
+	for(shared_ptr<Player> player:players_) {
+		for(pair<EnumCharacter, shared_ptr<Character>> role : player->getRoles()) {
+			if(role.first == character) {
+				role.second->setAbilityUsed(b);
+				return;
+			}
+		}
+	}
 }
 
 void Game::resetGameToSetup() {
-	for(shared_ptr<Player> player:players_) {
+	for(shared_ptr<Player> player : players_) {
 		player->emptyCurrentRoles();
 		player->setIsKing(false);
 	}
 	createCharacterCards();
-	currentState_=EnumState::SETUP;
+	currentState_ = EnumState::SETUP_CHOOSE_FIRST;
 }
 
 pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter character) {
@@ -91,15 +124,20 @@ pair<EnumCharacter, shared_ptr<Character>> Game::removeCharacter(EnumCharacter c
 	charactersDeck_.erase(character);
 	return returnValue;
 }
-
 bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Player> player) {
 	try{
 		player->addRole(removeCharacter(character));
 	} catch(...) {
-		cerr<<convertFromEnumCharacter.at(character)<<" is not in the characterdeck.\n\r";
+		cerr << convertFromEnumCharacter.at(character) << " is not in the characterdeck.\n\r";
 		return false;
 	}
 	return true;
+}
+
+void Game::murderCharacter(EnumCharacter character) {
+	for(shared_ptr<Player> player : players_) {
+		player->murderRole(character);
+	}
 }
 
 void Game::createBuildingCards() {
@@ -120,7 +158,6 @@ void Game::createBuildingCards() {
 		lineNumber++;
 	}
 }
-
 void Game::createCharacterCards() {
 	vector<string> lines;
 	string textfile{ "../Karakterkaarten.csv" };
@@ -132,12 +169,11 @@ void Game::createCharacterCards() {
 
 	string line;
 	while(getline(input_file, line)) {
-		vector<string> parts=split(line, ';');
-		shared_ptr<Character> buildingCard{new Character{stoi(parts[0]), convertToEnumCharacter.at(parts[1])}};
-		charactersDeck_.emplace(convertToEnumCharacter.at(parts[1]), buildingCard);
+		string s = split(line, ';')[1];
+		shared_ptr<Character> buildingCard{new Character{convertToEnumCharacter.at(s)}};
+		charactersDeck_.emplace(convertToEnumCharacter.at(s), buildingCard);
 	}
 }
-
 
 vector<string> Game::split(string & s, char delim) {
 	stringstream ss(s);
