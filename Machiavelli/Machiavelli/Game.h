@@ -17,6 +17,7 @@ public:
 	~Game();
 
 	void init();
+	void initQuickStart();
 
 	void addPlayer(std::shared_ptr<Player> player);
 	std::vector<std::shared_ptr<Player>> getPlayers() const { return players_; }
@@ -25,6 +26,12 @@ public:
 	std::shared_ptr<Player> getPlayerWithRole(EnumCharacter character);
 
 	int getIndexOfPlayer(std::shared_ptr<Player> player);
+
+	bool usingAbility() { return usingAbility_; }
+	void setUsingAbility(bool b);
+
+	bool abilityUsed(EnumCharacter character);
+	void setAbilityUsed(bool b, EnumCharacter character);
 
 	int getIndexOfKing();
 	void resetGameToSetup();
@@ -37,7 +44,8 @@ public:
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
 	bool moveCharacterFromDecktoPlayer(EnumCharacter character, std::shared_ptr<Player>);
-	
+
+	void murderCharacter(EnumCharacter character);
 private:
 	void createBuildingCards();
 	void createCharacterCards();
@@ -47,5 +55,6 @@ private:
 	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::string> split(std::string& s, char delim);
 	EnumState currentState_;
+	bool usingAbility_ = false;
 };
 

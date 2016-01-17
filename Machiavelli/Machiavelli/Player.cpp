@@ -47,6 +47,9 @@ vector<pair<EnumCharacter, shared_ptr<Character>>> Player::getRoles() {
 bool Player::hasRole(EnumCharacter character) {
 	for(pair<EnumCharacter, shared_ptr<Character>> role : getRoles()) {
 		if(character == role.first) {
+			if(role.second->isMurdered()) {
+				return false;
+			}
 			return true;
 		}
 	}
@@ -67,4 +70,13 @@ bool Player::buildBuilding(string buildingName) {
 		}
 	}
 	return false;
+}
+
+void Player::murderRole(EnumCharacter character) {
+	for(pair<EnumCharacter, shared_ptr<Character>> role : currentRoles_) {
+		if(role.first == character) {
+			role.second->setMurdered(true);
+			return;
+		}
+	}
 }

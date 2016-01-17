@@ -6,7 +6,9 @@
 
 enum class EnumState {
 	UNSTARTED,
-	SETUP,
+	SETUP_CHOOSE_FIRST,
+	SETUP_CHOOSE,
+	SETUP_DISCARD,
 	ASSASSIN_STATE,
 	THIEF_STATE,
 	MAGICIAN_STATE,
@@ -30,8 +32,6 @@ const std::map<EnumState, EnumCharacter> stateToCharacter{
 };
 
 const std::map<EnumState, EnumState> nextState = {
-	{EnumState::UNSTARTED, EnumState::SETUP},
-	{EnumState::SETUP, EnumState::ASSASSIN_STATE},
 	{EnumState::ASSASSIN_STATE, EnumState::THIEF_STATE},
 	{EnumState::THIEF_STATE, EnumState::MAGICIAN_STATE},
 	{EnumState::MAGICIAN_STATE, EnumState::KING_STATE},
@@ -39,12 +39,10 @@ const std::map<EnumState, EnumState> nextState = {
 	{EnumState::BISHOP_STATE, EnumState::MERCHANT_STATE},
 	{EnumState::MERCHANT_STATE, EnumState::ARCHITECT_STATE},
 	{EnumState::ARCHITECT_STATE, EnumState::WARLORD_STATE},
-	{EnumState::WARLORD_STATE, EnumState::END} //TODO: change to someting better just for one iteration of roles for now.
+	{EnumState::WARLORD_STATE, EnumState::END}
 };
 
 const std::map<EnumState, std::string> convertFromEnumState={
-	{EnumState::UNSTARTED, "Onbegonnen"}, //this will probably not be used
-	{EnumState::SETUP, "Opstartronde"},  
 	{EnumState::ASSASSIN_STATE, "moordenaar"},
 	{EnumState::THIEF_STATE, "dief"},
 	{EnumState::MAGICIAN_STATE, "magier"},
@@ -53,7 +51,6 @@ const std::map<EnumState, std::string> convertFromEnumState={
 	{EnumState::MERCHANT_STATE, "koopman"},
 	{EnumState::ARCHITECT_STATE, "bouwmeester"},
 	{EnumState::WARLORD_STATE, "condottiere"},
-	{EnumState::END, "einde spel"} // this will probably not be used
 };
 
 #endif
