@@ -276,6 +276,7 @@ void CommandHandler::handleMurderAbilityCommand(string cmd, ClientCommand client
 	if(cmd != "moordenaar") {
 		game_->murderCharacter(convertToEnumCharacter.at(cmd));
 		game_->setAbilityUsed(true, EnumCharacter::ASSASSIN);
+		writeMessageToAll("De " + cmd + " is vermoord door de moordenaar.");
 	} else {
 		writeMessageToActivePlayer(clientCmd, "Je kunt jezelf niet vermoorden.");
 	}
