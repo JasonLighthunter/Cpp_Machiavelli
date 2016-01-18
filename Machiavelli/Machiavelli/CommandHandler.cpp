@@ -71,6 +71,7 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleBackCommand(clientCmd);
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
+		letKnownWhichCharacterPlays_ = false;
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 		handleChooseBuildingCommand(clientCmd);
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
@@ -246,8 +247,10 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 			case EnumState::MAGICIAN_STATE:
 				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [terug]");
 				break;
-			case EnumState::KING_STATE:
 			case EnumState::BISHOP_STATE:
+				handleBishopAbilityCommand(clientCmd);
+				break;
+			case EnumState::KING_STATE:
 			case EnumState::ARCHITECT_STATE:
 			case EnumState::MERCHANT_STATE:
 				writeMessageToActivePlayer(clientCmd, "De "+convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+" heeft geen speciale eigenschappen (Die hij op deze manier kan gebruiken).\r\n [terug]");
@@ -295,6 +298,27 @@ void CommandHandler::handleMurderAbilityCommand(string cmd, ClientCommand client
 	}
 }
 
+void CommandHandler::handleBishopAbilityCommand(ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	int nrBlueBuildings = 0;
+
+	for (auto building : player->getBuildings()) {
+		if (building.second->getColor() == EnumColor::BLUE) {
+			nrBlueBuildings++;
+		}
+	}
+
+	player->increaseGold(nrBlueBuildings);
+	player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->setAbilityUsed(true);
+	if (nrBlueBuildings > 0) {
+		writeMessageToActivePlayer(clientCmd, "Je hebt " + to_string(nrBlueBuildings) + " blauwe gebouwen, je goud is opgehoogd naar " + to_string(player->getGold()));
+	}
+	else {
+		writeMessageToActivePlayer(clientCmd, "Je hebt geen blauw gebouw, je hoeveelheid goud is gelijk gebleven.");
+	}
+	handleBackCommand(clientCmd);
+}
+
 void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	bool canUse = canUseCommand(clientCmd);
 	if (!canUse) {
@@ -331,7 +355,7 @@ void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
 		string message = "\n\r\r\nWelk gebouw wil je in je hand nemen:\r\n";
 		game_->drawCards(2);
 		for (auto card : game_->getDrawnCards()) {
-			message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")\r\n";
+			message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
 		}
 		message += "[annuleer]\r\n";
 
@@ -387,7 +411,7 @@ void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd) {
 			string message = "\n\r\r\nWelk gebouw wil je bouwen:\r\n";
 
 			for (auto building : player->getHand()) {
-				message += "-   [" + building.second->getName() + "](" + to_string(building.second->getCosts()) + ")\r\n";
+				message += "-   [" + building.second->getName() + "](" + to_string(building.second->getCosts()) + ")(" + convertEnumColorToString.at(building.second->getColor()) + ")\r\n";
 			}
 			message += "[annuleer]\r\n";
 			writeMessageToActivePlayer(clientCmd, message);
@@ -456,9 +480,13 @@ void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 	if(!(game_->getCurrentState() == EnumState::END)) {
-		string message = "\n\r\r\nHet is nu de beurt van de " +
-			convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()));
-		writeMessageToAll(message);
+		string message = "";
+		if (!letKnownWhichCharacterPlays_) {
+			message = "\n\r\r\nHet is nu de beurt van de " +
+				convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()));
+			writeMessageToAll(message);
+		}
+		letKnownWhichCharacterPlays_ = true;
 		message = "\r\r\nJou rollen:\r\n";
 
 		for(shared_ptr<Player> player : game_->getPlayers()) {
@@ -491,6 +519,7 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 		}
 
 		writeMessageToAll("\r\nDe beurt was aan de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + ", maar die is niet in het spel!");
+		letKnownWhichCharacterPlays_ = false;
 		game_->switchState(nextState.at(game_->getCurrentState()));
 		showTurnInfo(clientCmd);
 	} else {
