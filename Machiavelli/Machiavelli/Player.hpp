@@ -44,6 +44,9 @@ public:
 	bool buildBuilding(std::string buildingName);
 
 	void murderRole(EnumCharacter character);
+
+	void markRoleForTheft(EnumCharacter character);
+	bool isMarkedForTheft(EnumCharacter character);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;
 	std::map<int, std::shared_ptr<Card>> buildings_;

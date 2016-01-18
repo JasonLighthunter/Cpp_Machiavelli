@@ -160,6 +160,12 @@ void Game::murderCharacter(EnumCharacter character) {
 	}
 }
 
+void Game::markForTheft(EnumCharacter character) {
+	for(shared_ptr<Player> player:players_) {
+		player->markRoleForTheft(character);
+	}
+}
+
 void Game::createBuildingCards() {
 	vector<string> lines;
 	string textfile{ "../Bouwkaarten.csv" };

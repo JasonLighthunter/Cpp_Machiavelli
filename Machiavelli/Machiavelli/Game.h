@@ -46,6 +46,8 @@ public:
 	bool moveCharacterFromDecktoPlayer(EnumCharacter character, std::shared_ptr<Player>);
 
 	void murderCharacter(EnumCharacter character);
+	void markForTheft(EnumCharacter character);
+
 private:
 	void createBuildingCards();
 	void createCharacterCards();

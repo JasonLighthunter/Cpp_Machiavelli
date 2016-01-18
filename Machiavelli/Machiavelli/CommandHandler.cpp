@@ -241,7 +241,7 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				writeMessageToActivePlayer(clientCmd, "Welke rol wil je vermoorden?\r\n [dief, magier, koning, prediker, koopman, bouwmeester, condottiere, terug]");
 				break;
 			case EnumState::THIEF_STATE:
-				writeMessageToActivePlayer(clientCmd, "Welke rol wil je bestelen?\r\n [terug]");
+				writeMessageToActivePlayer(clientCmd, "Welke rol wil je bestelen?\r\n [magier, koning, prediker, koopman, bouwmeester, condottiere, terug]");
 				break;
 			case EnumState::MAGICIAN_STATE:
 				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [terug]");
@@ -266,7 +266,7 @@ void CommandHandler::handleAbilityCommand(string cmd, ClientCommand clientCmd) {
 			handleMurderAbilityCommand(cmd, clientCmd);
 			break;
 		case EnumState::THIEF_STATE:
-			//TODO implement
+			handleTheftAbilityCommand(cmd, clientCmd);
 			break;
 		case EnumState::MAGICIAN_STATE:
 			//TODO implement
@@ -292,6 +292,15 @@ void CommandHandler::handleMurderAbilityCommand(string cmd, ClientCommand client
 		writeMessageToAll("De " + cmd + " is vermoord door de moordenaar.");
 	} else {
 		writeMessageToActivePlayer(clientCmd, "Je kunt jezelf niet vermoorden.");
+	}
+}
+void CommandHandler::handleTheftAbilityCommand(string cmd, ClientCommand clientCmd) {
+	if(cmd != "moordenaar" && cmd != "dief") {
+		game_->markForTheft(convertToEnumCharacter.at(cmd));
+		game_->setAbilityUsed(true, EnumCharacter::THIEF);
+		writeMessageToAll("De dief is van plan de de " + cmd + " te bestelen.");
+	} else {
+		writeMessageToActivePlayer(clientCmd, "Dit is niet mogelijk.");
 	}
 }
 
@@ -397,7 +406,6 @@ void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd) {
 	}
 }
 
-
 void CommandHandler::handleChooseToBuildCommand(ClientCommand clientCmd) {
 	bool canUse = canUseCommand(clientCmd);
 
@@ -464,9 +472,16 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 		for(shared_ptr<Player> player : game_->getPlayers()) {
 			string messagePlus = message;
 			if(player->hasRole(stateToCharacter.at(game_->getCurrentState()))) {
+
 				for(pair<EnumCharacter, shared_ptr<Character>> pair:player->getRoles()) {
 					messagePlus+="-   " + convertFromEnumCharacter.at(pair.first) + "\r\n";
 				}
+				//this is handled if role is marked for theft.
+				if(player->isMarkedForTheft(stateToCharacter.at(game_->getCurrentState()))) {
+					//TODO: alter text
+					cout<<"The "<<convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))<<" was marked for Theft";
+				}
+
 				messagePlus+= "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\r\r\n\nJouw hand:\r\n";
 				for (auto card : player->getHand()) {
 					messagePlus += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")("+ convertEnumColorToString.at(card.second->getColor()) +")\r\n";
