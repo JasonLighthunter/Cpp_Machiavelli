@@ -50,7 +50,9 @@ private:
 
 	void handleMurderAbilityCommand(std::string cmd, ClientCommand clientCmd); //vermoordt een karakter en zorgt ervoor dat deze stilletjes wordt overgeslagen deze ronde.
 
-	void handlePassCommand(ClientCommand clientCmd); //beeindigt de beurt.
+	void handlePassCommand(ClientCommand clientCmd);
+	void handleChooseToBuildCommand(ClientCommand clientCmd);
+	//beeindigt de beurt.
 	void handleEndOfRound(ClientCommand clientCmd); //TODO checken op win conditites. start nieuew ronde.
 
 	void handleGetGoldCommand(ClientCommand clientCmd);

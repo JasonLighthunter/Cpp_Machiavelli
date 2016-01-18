@@ -12,6 +12,7 @@ public:
 	int getCosts() const { return value_; }
 	int getId() const { return id_; }
 	std::string getName() const { return name_; }
+	EnumColor getColor() const { return color_; }
 private:
 	int id_;
 	std::string name_;
