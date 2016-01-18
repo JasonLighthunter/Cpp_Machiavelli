@@ -262,27 +262,12 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				game_->setUsingAbility(false);
 				break;
 			case EnumState::WARLORD_STATE:
-			{
-				auto player = clientCmd.getPlayer();
-				auto enemy = game_->getEnemy(player);
-				if (enemy->hasRole(EnumCharacter::BISHOP)) {
-					writeMessageToActivePlayer(clientCmd, "Je kunt geen gebouw van de prediker vernietingen. \r\n [terug]");
-					game_->setUsingAbility(false);
-				}
-				else if (enemy->getBuildings().size() == 0) {
-					writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft geen gebouwen. \r\n [terug]");
-					game_->setUsingAbility(false);
-				}
-				else {
-					string message = "Welk gebouw wil je vernietigen?\r\n";
-					for (auto card : enemy->getBuildings()) {
-						message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")(" + convertEnumColorToString.at(card.second->getColor()) + ")\r\n";
-					}
-					writeMessageToActivePlayer(clientCmd, message + "[terug]");
-					player->setCurrentTurnState(EnumTurnState::DESTROY_BUILDING);
-				}
+				// Voor het goud voor elk rood gebouw
+				handleWarlordAbilityCommand(clientCmd);
+
+				//Voor het kiezen van een gebouw om te vernietigen
+				handleBeginDestroyBuildingCommand(clientCmd);
 				break;
-			}
 			default:
 				break;
 		}
@@ -378,6 +363,52 @@ void CommandHandler::handleMerchantAbilityCommand(ClientCommand clientCmd) {
 	handleBackCommand(clientCmd);
 }
 
+void CommandHandler::handleWarlordAbilityCommand(ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	int nrRedBuildings = 0;
+
+	for (auto building : player->getBuildings()) {
+		if (building.second->getColor() == EnumColor::RED) {
+			nrRedBuildings++;
+		}
+	}
+
+	player->increaseGold(nrRedBuildings);
+	player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->setAbilityUsed(true);
+	if (nrRedBuildings > 0) {
+		writeMessageToActivePlayer(clientCmd, "Je hebt " + to_string(nrRedBuildings) + " rode gebouwen, je goud is opgehoogd naar " + to_string(player->getGold()));
+	}
+	else {
+		writeMessageToActivePlayer(clientCmd, "Je hebt geen rood gebouw, je hoeveelheid goud is gelijk gebleven.\r\n");
+	}
+}
+
+void CommandHandler::handleBeginDestroyBuildingCommand(ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	auto enemy = game_->getEnemy(player);
+	if (enemy->hasRole(EnumCharacter::BISHOP)) {
+		writeMessageToActivePlayer(clientCmd, "Je kunt geen gebouw van de prediker vernietingen. \r\n [terug]");
+		game_->setUsingAbility(false);
+	}
+	else if (enemy->getBuildings().size() == 0) {
+		writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft geen gebouwen. \r\n [terug]");
+		game_->setUsingAbility(false);
+	}
+	else if (enemy->getBuildings().size() >= 8) {
+		writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft al meer dan 8 gebouwen. \r\n [terug]");
+		game_->setUsingAbility(false);
+	}
+	else {
+		string message = "Welk gebouw wil je vernietigen?\r\n";
+		for (auto card : enemy->getBuildings()) {
+			message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")(" + convertEnumColorToString.at(card.second->getColor()) + ")\r\n";
+		}
+		writeMessageToActivePlayer(clientCmd, message + "[terug]");
+		player->setCurrentTurnState(EnumTurnState::DESTROY_BUILDING);
+	}
+
+}
+
 void CommandHandler::handleDestroyBuildingAbilityCommand(string cmd, ClientCommand clientCmd) {
 	auto player = clientCmd.getPlayer();
 	auto enemy = game_->getEnemy(player);
@@ -393,7 +424,6 @@ void CommandHandler::handleDestroyBuildingAbilityCommand(string cmd, ClientComma
 				enemy->destroyBuilding(building);
 				
 				game_->setAbilityUsed(true, EnumCharacter::WARLORD);
-				player->setCurrentTurnState(EnumTurnState::DEFAULT);
 
 				writeMessageToAll("De " + building.second->getName() + " van " + enemy->getName() + " is vernietigd door de condottiere.");
 				writeMessageToActivePlayer(clientCmd, "Je goud is verlaagd naar " + to_string(player->getGold()) + ".");
@@ -407,8 +437,9 @@ void CommandHandler::handleDestroyBuildingAbilityCommand(string cmd, ClientComma
 	if (!success) {
 		writeMessageToActivePlayer(clientCmd, "Je hebt niet genoeg goud of je het een niet bestaand gebouw aangewezen.");
 	}
-
-	handleBackCommand(clientCmd);
+	else {
+		handleBackCommand(clientCmd);
+	}
 }
 
 void CommandHandler::handlePassCommand(ClientCommand clientCmd) {

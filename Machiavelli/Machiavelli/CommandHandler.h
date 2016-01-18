@@ -56,6 +56,10 @@ private:
 
 	void handleMerchantAbilityCommand(ClientCommand clientCmd);
 
+	void handleWarlordAbilityCommand(ClientCommand clientCmd);
+
+	void handleBeginDestroyBuildingCommand(ClientCommand clientCmd);
+
 	void handleDestroyBuildingAbilityCommand(std::string cmd, ClientCommand clientCmd);
 
 	void handlePassCommand(ClientCommand clientCmd);
