@@ -17,7 +17,8 @@ enum class EnumState {
 	MERCHANT_STATE,
 	ARCHITECT_STATE,
 	WARLORD_STATE,
-	END
+	END,
+	FINISHED
 };
 
 const std::map<EnumState, EnumCharacter> stateToCharacter{

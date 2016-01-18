@@ -44,6 +44,9 @@ public:
 	void setCurrentTurnState(EnumTurnState newState) { currentTurnState_ = newState; }
 	bool buildBuilding(std::string buildingName);
 
+	bool isFirstComplete() const { return firstComplete_; }
+	void setFirstComplete() { firstComplete_ = true; }
+
 	void destroyBuilding(std::pair<const int, std::shared_ptr<Card>> building);
 
 	void murderRole(EnumCharacter character);
@@ -58,6 +61,7 @@ private:
 	std::string name_;
 	EnumTurnState currentTurnState_;
 	bool isKing_ = false;
+	bool firstComplete_ = false;
 	int gold_ = 0;
 };
 

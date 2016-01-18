@@ -67,6 +67,8 @@ private:
 	//beeindigt de beurt.
 	void handleEndOfRound(ClientCommand clientCmd); //TODO checken op win conditites. start nieuew ronde.
 
+	void handleEndOfGame();
+
 	void handleGetGoldCommand(ClientCommand clientCmd);
 
 	void handleGetBuildingCommand(ClientCommand clientCmd);
