@@ -24,6 +24,7 @@ private:
 	std::unique_ptr<Game> game_;
 	int turnCounter_ = 0;
 	int playerCount_ = 0;
+	bool letKnownWhichCharacterPlays_ = false;
 
 	//methods
 	void writeMessageToActivePlayer(ClientCommand clientCmd, std::string message); //schrijft bericht naar huidige speler; aka de moordenaar in de beurt van de moordenaar;
@@ -49,6 +50,8 @@ private:
 	void handleAbilityCommand(std::string cmd, ClientCommand clientcmd);
 
 	void handleMurderAbilityCommand(std::string cmd, ClientCommand clientCmd); //vermoordt een karakter en zorgt ervoor dat deze stilletjes wordt overgeslagen deze ronde.
+
+	void handleBishopAbilityCommand(ClientCommand clientCmd);
 
 	void handlePassCommand(ClientCommand clientCmd);
 	void handleChooseToBuildCommand(ClientCommand clientCmd);
