@@ -27,6 +27,7 @@ public:
 	void setName(const std::string& new_name) { name_ = new_name; }
 
 	void increaseGold(const int increase_with) { gold_ += increase_with; }
+	void decreaseGold(const int decrease_with) { gold_ -= decrease_with; }
 	int getGold() const { return gold_; }
 	bool isKing() const { return isKing_; }
 	void setIsKing(bool b);
@@ -44,6 +45,10 @@ public:
 	bool buildBuilding(std::string buildingName);
 
 	void murderRole(EnumCharacter character);
+	EnumCharacter getMurderTarget();
+
+	void markRoleForTheft(EnumCharacter character);
+	bool isMarkedForTheft(EnumCharacter character);
 private:
 	std::map<int, std::shared_ptr<Card>> hand_;
 	std::map<int, std::shared_ptr<Card>> buildings_;
