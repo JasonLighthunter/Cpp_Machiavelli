@@ -59,7 +59,8 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
-	} else if(cmd == "goud") {
+	}
+	else if(cmd == "goud") {
 		handleGetGoldCommand(clientCmd);
 	} else if(cmd == "gebouwen"){
 		handleGetBuildingCommand(clientCmd);
@@ -75,6 +76,8 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleChooseBuildingCommand(clientCmd);
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
 		handleChooseToBuildCommand(clientCmd);
+	} else if(clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::DESTROY_BUILDING) {
+		handleDestroyBuildingAbilityCommand(cmd, clientCmd);
 	} else {
 		writeReply(clientCmd, "Onbekend commando ontvangen.");
 	}
@@ -222,6 +225,7 @@ void CommandHandler::handleBackCommand(ClientCommand clientCmd) {
 		writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 	} else if(game_->usingAbility()) {
 		game_->setUsingAbility(false);
+		clientCmd.getPlayer()->setCurrentTurnState(EnumTurnState::DEFAULT);
 		showTurnInfo(clientCmd);
 	} else {
 		writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
@@ -258,8 +262,27 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				game_->setUsingAbility(false);
 				break;
 			case EnumState::WARLORD_STATE:
-				writeMessageToActivePlayer(clientCmd, "Wiens gebouwen wil je vernietigen?\r\n [terug]");
+			{
+				auto player = clientCmd.getPlayer();
+				auto enemy = game_->getEnemy(player);
+				if (enemy->hasRole(EnumCharacter::BISHOP)) {
+					writeMessageToActivePlayer(clientCmd, "Je kunt geen gebouw van de prediker vernietingen. \r\n [terug]");
+					game_->setUsingAbility(false);
+				}
+				else if (enemy->getBuildings().size() == 0) {
+					writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft geen gebouwen. \r\n [terug]");
+					game_->setUsingAbility(false);
+				}
+				else {
+					string message = "Welk gebouw wil je vernietigen?\r\n";
+					for (auto card : enemy->getBuildings()) {
+						message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")(" + convertEnumColorToString.at(card.second->getColor()) + ")\r\n";
+					}
+					writeMessageToActivePlayer(clientCmd, message + "[terug]");
+					player->setCurrentTurnState(EnumTurnState::DESTROY_BUILDING);
+				}
 				break;
+			}
 			default:
 				break;
 		}
@@ -283,7 +306,8 @@ void CommandHandler::handleAbilityCommand(string cmd, ClientCommand clientCmd) {
 			writeReply(clientCmd, "Je kunt dit commando nu niet gebruiken");
 			break;
 		case EnumState::WARLORD_STATE:
-			//TODO implement
+			handleDestroyBuildingAbilityCommand(cmd, clientCmd);
+			break;
 		default:
 			break;
 	}
@@ -351,6 +375,39 @@ void CommandHandler::handleMerchantAbilityCommand(ClientCommand clientCmd) {
 	else {
 		writeMessageToActivePlayer(clientCmd, "Je hebt geen groen gebouw, je hoeveelheid goud is gelijk gebleven.");
 	}
+	handleBackCommand(clientCmd);
+}
+
+void CommandHandler::handleDestroyBuildingAbilityCommand(string cmd, ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	auto enemy = game_->getEnemy(player);
+
+	bool success = false;
+
+	for (auto building : enemy->getBuildings()) {
+		if (building.second->getName() == cmd) {
+			int costs = building.second->getCosts() - 1;
+			if (player->getGold() >= costs) {
+				player->increaseGold(-costs);
+				game_->putBackToBuildingsDeck(building.second);
+				enemy->destroyBuilding(building);
+				
+				game_->setAbilityUsed(true, EnumCharacter::WARLORD);
+				player->setCurrentTurnState(EnumTurnState::DEFAULT);
+
+				writeMessageToAll("De " + building.second->getName() + " van " + enemy->getName() + " is vernietigd door de condottiere.");
+				writeMessageToActivePlayer(clientCmd, "Je goud is verlaagd naar " + to_string(player->getGold()) + ".");
+
+				success = true;
+			}
+			break;
+		}
+	}
+
+	if (!success) {
+		writeMessageToActivePlayer(clientCmd, "Je hebt niet genoeg goud of je het een niet bestaand gebouw aangewezen.");
+	}
+
 	handleBackCommand(clientCmd);
 }
 

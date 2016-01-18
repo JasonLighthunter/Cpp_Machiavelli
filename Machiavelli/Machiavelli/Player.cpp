@@ -78,6 +78,10 @@ bool Player::buildBuilding(string buildingName) {
 	return false;
 }
 
+void Player::destroyBuilding(pair<const int, std::shared_ptr<Card>> building) {
+	buildings_.erase(building.first);
+}
+
 void Player::murderRole(EnumCharacter character) {
 	for(pair<EnumCharacter, shared_ptr<Character>> role : currentRoles_) {
 		if(role.first == character) {

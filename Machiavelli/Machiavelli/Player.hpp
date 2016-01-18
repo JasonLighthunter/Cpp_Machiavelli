@@ -44,6 +44,8 @@ public:
 	void setCurrentTurnState(EnumTurnState newState) { currentTurnState_ = newState; }
 	bool buildBuilding(std::string buildingName);
 
+	void destroyBuilding(std::pair<const int, std::shared_ptr<Card>> building);
+
 	void murderRole(EnumCharacter character);
 	EnumCharacter getMurderTarget();
 

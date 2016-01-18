@@ -33,6 +33,8 @@ public:
 	bool goldStolen() { return goldStolen_; }
 	void setGoldStolen(bool b);
 
+	std::shared_ptr<Player> getEnemy(std::shared_ptr<Player> currentPlayer);
+
 	bool abilityUsed(EnumCharacter character);
 	void setAbilityUsed(bool b, EnumCharacter character);
 
@@ -47,6 +49,8 @@ public:
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
 	bool moveCharacterFromDecktoPlayer(EnumCharacter character, std::shared_ptr<Player>);
+
+	void putBackToBuildingsDeck(std::shared_ptr<Card> card);
 
 	void murderCharacter(EnumCharacter character);
 	void markForTheft(EnumCharacter character);
