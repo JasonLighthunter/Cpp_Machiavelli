@@ -71,7 +71,6 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleBackCommand(clientCmd);
 	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
 		handlePassCommand(clientCmd);
-		letKnownWhichCharacterPlays_ = false;
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 		handleChooseBuildingCommand(clientCmd);
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
@@ -325,6 +324,7 @@ void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
 		game_->switchState(nextState.at(game_->getCurrentState()));
+		letKnownWhichCharacterPlays_ = false;
 		showTurnInfo(clientCmd);
 	}
 }
@@ -420,7 +420,6 @@ void CommandHandler::handleBuildBuildingCommand(ClientCommand clientCmd) {
 		}
 	}
 }
-
 
 void CommandHandler::handleChooseToBuildCommand(ClientCommand clientCmd) {
 	bool canUse = canUseCommand(clientCmd);
