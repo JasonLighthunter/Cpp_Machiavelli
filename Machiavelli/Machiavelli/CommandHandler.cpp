@@ -52,14 +52,14 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		if((game_->getCurrentState()==EnumState::SETUP_CHOOSE||
 			game_->getCurrentState()==EnumState::SETUP_DISCARD||
 			game_->getCurrentState()==EnumState::SETUP_CHOOSE_FIRST)&&
-		   clientCmd.getPlayer()==game_->getPlayerOnIndex(turnCounter_)) {
+		   clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
 			handleSetupCommands(convertToEnumCharacter.at(cmd), clientCmd);
-		} else if(requestingPlayerHasRightRole(clientCmd)&&game_->usingAbility()) {
+		} else if(requestingPlayerHasRightRole(clientCmd) && game_->usingAbility()) {
 			handleAbilityCommand(cmd, clientCmd);
 		} else {
 			writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 		}
-	} else if(cmd=="goud") {
+	} else if(cmd == "goud") {
 		handleGetGoldCommand(clientCmd);
 	} else if(cmd == "gebouwen"){
 		handleGetBuildingCommand(clientCmd);
@@ -69,7 +69,7 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		handleStartAbilityCommand(clientCmd);
 	} else if (cmd == "terug"){
 		handleBackCommand(clientCmd);
-	} else if(cmd == "einde beurt" || cmd == "pas" || cmd == "eind"){
+	} else if(cmd == "pas"){
 		handlePassCommand(clientCmd);
 	} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 		handleChooseBuildingCommand(clientCmd);
@@ -295,7 +295,7 @@ void CommandHandler::handleMurderAbilityCommand(string cmd, ClientCommand client
 	}
 }
 void CommandHandler::handleTheftAbilityCommand(string cmd, ClientCommand clientCmd) {
-	if(cmd != "moordenaar" && cmd != "dief") {
+	if(cmd != "moordenaar" && cmd != "dief" && cmd != convertFromEnumCharacter.at(game_->getMurderTarget())) {
 		game_->markForTheft(convertToEnumCharacter.at(cmd));
 		game_->setAbilityUsed(true, EnumCharacter::THIEF);
 		writeMessageToAll("De dief is van plan de de " + cmd + " te bestelen.");
@@ -479,7 +479,11 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 				//this is handled if role is marked for theft.
 				if(player->isMarkedForTheft(stateToCharacter.at(game_->getCurrentState()))) {
 					//TODO: alter text
-					cout<<"The "<<convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))<<" was marked for Theft";
+					cout << "The " << convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) << " was marked for Theft. Let the stealing commence!";
+					int goldStolen=player->getGold();
+					shared_ptr<Player> thief=game_->getPlayerWithRole(EnumCharacter::THIEF);
+					player->decreaseGold(goldStolen);
+					thief->increaseGold(goldStolen);
 				}
 
 				messagePlus+= "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\r\r\n\nJouw hand:\r\n";

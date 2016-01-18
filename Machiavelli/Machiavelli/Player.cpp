@@ -86,6 +86,14 @@ void Player::murderRole(EnumCharacter character) {
 		}
 	}
 }
+EnumCharacter Player::getMurderTarget() {
+	for(pair<EnumCharacter, shared_ptr<Character>> role:currentRoles_) {
+		if(role.second->isMurdered()) {
+			return role.first;
+		}
+	}
+	return EnumCharacter::ASSASSIN;
+}
 void Player::markRoleForTheft(EnumCharacter character) {
 	for(pair<EnumCharacter, shared_ptr<Character>> role:currentRoles_) {
 		if(role.first == character) {

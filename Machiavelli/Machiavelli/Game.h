@@ -47,6 +47,7 @@ public:
 
 	void murderCharacter(EnumCharacter character);
 	void markForTheft(EnumCharacter character);
+	EnumCharacter getMurderTarget();
 
 private:
 	void createBuildingCards();
