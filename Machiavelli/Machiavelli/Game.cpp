@@ -37,20 +37,31 @@ void Game::init() {
 	}
 }
 void Game::initQuickStart() {
+	random_device dev;
+	default_random_engine dre{dev()};
 	//players_[0] krijgt moordenaar en koning
 	moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, players_[0]);
 	moveCharacterFromDecktoPlayer(EnumCharacter::KING, players_[0]);
 	players_[0]->increaseGold(2);
-	//players_[1] krijgt dief en koopman
+	//players_[1] krijgt bouwmeester en koopman
 	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
-	moveCharacterFromDecktoPlayer(EnumCharacter::THIEF, players_[1]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::ARCHITECT, players_[1]);
 	players_[1]->increaseGold(2);
 	//remove everything else
 	removeCharacter(EnumCharacter::MAGICIAN);
 	removeCharacter(EnumCharacter::BISHOP);
-	removeCharacter(EnumCharacter::ARCHITECT);
+	removeCharacter(EnumCharacter::THIEF);
 	removeCharacter(EnumCharacter::WARLORD);
-	currentState_=EnumState::ASSASSIN_STATE;
+	currentState_ = EnumState::ASSASSIN_STATE;
+	for(auto player:players_) {
+		while(player->getHand().size() < 4) {
+			uniform_int_distribution<int> dist{1, static_cast<int>(buildingsDeck_.size())-1};
+			int pos=dist(dre);
+			auto card=buildingsDeck_.at(pos);
+			player->addBuildingCard(card);
+			buildingsDeck_.erase(buildingsDeck_.begin()+pos);
+		}
+	}
 }
 
 void Game::addPlayer(shared_ptr<Player> player) {
