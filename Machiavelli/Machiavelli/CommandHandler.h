@@ -53,6 +53,8 @@ private:
 
 	void handleBishopAbilityCommand(ClientCommand clientCmd);
 
+	void handleMerchantAbilityCommand(ClientCommand clientCmd);
+
 	void handlePassCommand(ClientCommand clientCmd);
 	void handleChooseToBuildCommand(ClientCommand clientCmd);
 	//beeindigt de beurt.

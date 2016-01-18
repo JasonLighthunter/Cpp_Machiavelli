@@ -249,10 +249,13 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 			case EnumState::BISHOP_STATE:
 				handleBishopAbilityCommand(clientCmd);
 				break;
+			case EnumState::MERCHANT_STATE:
+				handleMerchantAbilityCommand(clientCmd);
+				break;
 			case EnumState::KING_STATE:
 			case EnumState::ARCHITECT_STATE:
-			case EnumState::MERCHANT_STATE:
 				writeMessageToActivePlayer(clientCmd, "De "+convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+" heeft geen speciale eigenschappen (Die hij op deze manier kan gebruiken).\r\n [terug]");
+				game_->setUsingAbility(false);
 				break;
 			case EnumState::WARLORD_STATE:
 				writeMessageToActivePlayer(clientCmd, "Wiens gebouwen wil je vernietigen?\r\n [terug]");
@@ -318,6 +321,30 @@ void CommandHandler::handleBishopAbilityCommand(ClientCommand clientCmd) {
 	handleBackCommand(clientCmd);
 }
 
+void CommandHandler::handleMerchantAbilityCommand(ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	int nrGreenBuildings = 0;
+
+	for (auto building : player->getBuildings()) {
+		if (building.second->getColor() == EnumColor::GREEN) {
+			nrGreenBuildings++;
+		}
+	}
+
+	player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->setAbilityUsed(true);
+	player->increaseGold(1);
+	writeMessageToActivePlayer(clientCmd, "Je krijgt 1 goud omdat je koopman bent, je hebt nu " + to_string(player->getGold()) + " goud.");
+	
+	if (nrGreenBuildings > 0) {
+		player->increaseGold(nrGreenBuildings);
+		writeMessageToActivePlayer(clientCmd, "Je hebt " + to_string(nrGreenBuildings) + " groene gebouwen, je goud is opgehoogd naar " + to_string(player->getGold()));
+	}
+	else {
+		writeMessageToActivePlayer(clientCmd, "Je hebt geen groen gebouw, je hoeveelheid goud is gelijk gebleven.");
+	}
+	handleBackCommand(clientCmd);
+}
+
 void CommandHandler::handlePassCommand(ClientCommand clientCmd) {
 	bool canUse = canUseCommand(clientCmd);
 	if (!canUse) {
@@ -350,16 +377,35 @@ void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
 	if (!canUse) {
 		writeReply(clientCmd, "Je kan dit commando nu niet gebruiken.");
 	} else {
-		auto player = clientCmd.getPlayer();
-		player->setCurrentTurnState(EnumTurnState::CHOOSE_BUILDING);
-		string message = "\n\r\r\nWelk gebouw wil je in je hand nemen:\r\n";
-		game_->drawCards(2);
-		for (auto card : game_->getDrawnCards()) {
-			message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
-		}
-		message += "[annuleer]\r\n";
+		if (stateToCharacter.at(game_->getCurrentState()) == EnumCharacter::ARCHITECT) {
+			auto player = clientCmd.getPlayer();
+			game_->drawCards(2);
 
-		writeMessageToActivePlayer(clientCmd, message);
+			string message = "\n\r\r\nJe hebt de volgende kaarten in je hand genomen:\r\n";
+			for (auto card : game_->getDrawnCards()) {
+				message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
+			}
+
+			for (auto card : game_->getDrawnCards()) {
+				player->addBuildingCard(card);
+			}
+			game_->getDrawnCards().clear();
+
+			auto character = player->getCharacter(EnumCharacter::ARCHITECT);
+			character->setGoldOrBuilding(true);
+		}
+		else {
+			auto player = clientCmd.getPlayer();
+			player->setCurrentTurnState(EnumTurnState::CHOOSE_BUILDING);
+			string message = "\n\r\r\nWelk gebouw wil je in je hand nemen:\r\n";
+			game_->drawCards(2);
+			for (auto card : game_->getDrawnCards()) {
+				message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
+			}
+			message += "[annuleer]\r\n";
+
+			writeMessageToActivePlayer(clientCmd, message);
+		}
 	}
 }
 
@@ -430,8 +476,8 @@ void CommandHandler::handleChooseToBuildCommand(ClientCommand clientCmd) {
 	else {
 		auto player = clientCmd.getPlayer();
 		auto character = player->getCharacter(stateToCharacter.at(game_->getCurrentState()));
-		if (clientCmd.getCmd() == "annuleer" || character->buildedBuilding()) {
-			if (character->buildedBuilding()) {
+		if (clientCmd.getCmd() == "annuleer" || (character->buildedBuildings() > 0 && character->getRole() != EnumCharacter::ARCHITECT)) {
+			if (character->buildedBuildings() > 0) {
 				writeMessageToActivePlayer(clientCmd, "Je hebt al een gebouw gebouwd.");
 			}
 			player->setCurrentTurnState(EnumTurnState::DEFAULT);
@@ -440,7 +486,7 @@ void CommandHandler::handleChooseToBuildCommand(ClientCommand clientCmd) {
 		else {
 			bool success = player->buildBuilding(clientCmd.getCmd());
 			if (success) {
-				character->setBuildedBuilding(true);
+				character->increaseBuildedBuilding();
 				showTurnInfo(clientCmd);
 			}
 			else {
@@ -503,13 +549,15 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 					messagePlus+= "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")("+ convertEnumColorToString.at(card.second->getColor()) +")\r\n";
 				}
 				messagePlus+= "\r\nWat wil je doen\r\n Opties: [pas";
-				if(!game_->abilityUsed(stateToCharacter.at(game_->getCurrentState()))) {
+				if(!game_->abilityUsed(stateToCharacter.at(game_->getCurrentState())) && 
+					stateToCharacter.at(game_->getCurrentState()) != EnumCharacter::ARCHITECT) {
 					messagePlus+= ", eigenschap";
 				}
 				if(!player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->alreadyGetGoldOrBuilding()) {
 					messagePlus+= ", goud, gebouwen";
 				}
-				if (!player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->buildedBuilding()) {
+				if (player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->buildedBuildings() == 0 || 
+					(stateToCharacter.at(game_->getCurrentState()) == EnumCharacter::ARCHITECT && player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->buildedBuildings() < 3)) {
 					messagePlus += ", bouw";
 				}
 				writeMessageToActivePlayer(clientCmd, messagePlus + "]");
