@@ -386,6 +386,8 @@ void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
 				message += "-   [" + card->getName() + "](" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
 			}
 
+			writeMessageToActivePlayer(clientCmd, message);
+
 			for (auto card : game_->getDrawnCards()) {
 				player->addBuildingCard(card);
 			}
@@ -393,6 +395,8 @@ void CommandHandler::handleGetBuildingCommand(ClientCommand clientCmd) {
 
 			auto character = player->getCharacter(EnumCharacter::ARCHITECT);
 			character->setGoldOrBuilding(true);
+
+			showTurnInfo(clientCmd);
 		}
 		else {
 			auto player = clientCmd.getPlayer();
