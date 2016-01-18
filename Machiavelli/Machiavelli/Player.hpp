@@ -35,6 +35,7 @@ public:
 	std::map<int, std::shared_ptr<Card>> getHand() const { return hand_; }
 	std::map<int, std::shared_ptr<Card>> getBuildings() const { return buildings_; }
 	void addBuildingCard(std::shared_ptr<Card> card);
+	void addBuildingToBuildings(std::shared_ptr<Card> card);
 	void emptyCurrentRoles();
 	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
 	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles();

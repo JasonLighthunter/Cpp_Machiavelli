@@ -29,6 +29,10 @@ void Player::addBuildingCard(std::shared_ptr<Card> card) {
 	hand_[card->getId()] = card;
 }
 
+void Player::addBuildingToBuildings(std::shared_ptr<Card> card) {
+	buildings_[card->getId()] = card;
+}
+
 void Player::emptyCurrentRoles() {
 	currentRoles_.clear();
 }

@@ -61,7 +61,15 @@ void Game::initQuickStart() {
 			player->addBuildingCard(card);
 			buildingsDeck_.erase(buildingsDeck_.begin()+pos);
 		}
+		/*for (int i = 0; i < 7; i++) {
+			uniform_int_distribution<int> dist{ 1, static_cast<int>(buildingsDeck_.size()) - 1 };
+			int pos = dist(dre);
+			auto card = buildingsDeck_.at(pos);
+			player->addBuildingToBuildings(card);
+			buildingsDeck_.erase(buildingsDeck_.begin() + pos);
+		}*/
 	}
+
 }
 
 void Game::addPlayer(shared_ptr<Player> player) {
