@@ -11,6 +11,10 @@ void Character::setMurdered(bool b) {
 	isMurdered_ = b;
 }
 
+void Character::isMarkedForTheft(bool b) {
+	isMarkedForTheft_ = b;
+}
+
 void Character::setAbilityUsed(bool b) {
 	abilityUsed_ = b;
 }

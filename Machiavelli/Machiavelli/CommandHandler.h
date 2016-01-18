@@ -50,6 +50,7 @@ private:
 	void handleAbilityCommand(std::string cmd, ClientCommand clientcmd);
 
 	void handleMurderAbilityCommand(std::string cmd, ClientCommand clientCmd); //vermoordt een karakter en zorgt ervoor dat deze stilletjes wordt overgeslagen deze ronde.
+	void handleTheftAbilityCommand(std::string cmd, ClientCommand clientCmd); //toggled de boolean isTheftTarget. die ervoor zorgt dat al het goud aan het begin van de beurt van de gekozen rol naar de dief gaat.
 
 	void handleBishopAbilityCommand(ClientCommand clientCmd);
 

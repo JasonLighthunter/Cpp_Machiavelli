@@ -40,9 +40,11 @@ void Game::initQuickStart() {
 	//players_[0] krijgt moordenaar en koning
 	moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, players_[0]);
 	moveCharacterFromDecktoPlayer(EnumCharacter::KING, players_[0]);
+	players_[0]->increaseGold(2);
 	//players_[1] krijgt dief en koopman
 	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
 	moveCharacterFromDecktoPlayer(EnumCharacter::THIEF, players_[1]);
+	players_[1]->increaseGold(2);
 	//remove everything else
 	removeCharacter(EnumCharacter::MAGICIAN);
 	removeCharacter(EnumCharacter::BISHOP);
@@ -89,6 +91,10 @@ void Game::switchState(EnumState state) {
 
 void Game::setUsingAbility(bool b) {
 	usingAbility_ = b;
+}
+
+void Game::setGoldStolen(bool b) {
+	goldStolen_ = b;
 }
 
 bool Game::abilityUsed(EnumCharacter character) {
@@ -158,6 +164,23 @@ void Game::murderCharacter(EnumCharacter character) {
 	for(shared_ptr<Player> player : players_) {
 		player->murderRole(character);
 	}
+}
+
+void Game::markForTheft(EnumCharacter character) {
+	for(shared_ptr<Player> player:players_) {
+		player->markRoleForTheft(character);
+	}
+}
+
+EnumCharacter Game::getMurderTarget() {
+	EnumCharacter returnValue = EnumCharacter::ASSASSIN;
+	for(shared_ptr<Player> player:players_) {
+		returnValue = player->getMurderTarget();
+		if(returnValue != EnumCharacter::ASSASSIN) {
+			return returnValue;
+		}
+	}
+	return returnValue;
 }
 
 void Game::createBuildingCards() {
