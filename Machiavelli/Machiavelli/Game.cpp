@@ -93,6 +93,10 @@ void Game::setUsingAbility(bool b) {
 	usingAbility_ = b;
 }
 
+void Game::setGoldStolen(bool b) {
+	goldStolen_ = b;
+}
+
 bool Game::abilityUsed(EnumCharacter character) {
 	for(pair<EnumCharacter, shared_ptr<Character>> role:getPlayerWithRole(character)->getRoles()) {
 		if(role.first == character) {

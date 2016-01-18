@@ -30,6 +30,9 @@ public:
 	bool usingAbility() { return usingAbility_; }
 	void setUsingAbility(bool b);
 
+	bool goldStolen() { return goldStolen_; }
+	void setGoldStolen(bool b);
+
 	bool abilityUsed(EnumCharacter character);
 	void setAbilityUsed(bool b, EnumCharacter character);
 
@@ -59,5 +62,6 @@ private:
 	std::vector<std::string> split(std::string& s, char delim);
 	EnumState currentState_;
 	bool usingAbility_ = false;
+	bool goldStolen_ = false;
 };
 

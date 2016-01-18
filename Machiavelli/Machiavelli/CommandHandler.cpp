@@ -463,6 +463,7 @@ void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 }
 
 void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
+	
 	if(!(game_->getCurrentState() == EnumState::END)) {
 		string message = "\n\r\r\nHet is nu de beurt van de " +
 			convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()));
@@ -477,13 +478,14 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 					messagePlus+="-   " + convertFromEnumCharacter.at(pair.first) + "\r\n";
 				}
 				//this is handled if role is marked for theft.
-				if(player->isMarkedForTheft(stateToCharacter.at(game_->getCurrentState()))) {
+				if(player->isMarkedForTheft(stateToCharacter.at(game_->getCurrentState())) && !game_->goldStolen()) {
 					//TODO: alter text
 					cout << "The " << convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) << " was marked for Theft. Let the stealing commence!";
 					int goldStolen=player->getGold();
 					shared_ptr<Player> thief=game_->getPlayerWithRole(EnumCharacter::THIEF);
 					player->decreaseGold(goldStolen);
 					thief->increaseGold(goldStolen);
+					game_->setGoldStolen(true);
 				}
 
 				messagePlus+= "\r\r\nHoeveelheid goud: " + to_string(player->getGold()) + "\r\r\r\n\nJouw hand:\r\n";
@@ -511,6 +513,7 @@ void CommandHandler::showTurnInfo(ClientCommand clientCmd) {
 
 		writeMessageToAll("\r\nDe beurt was aan de " + convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState())) + ", maar die is niet in het spel!");
 		game_->switchState(nextState.at(game_->getCurrentState()));
+		game_->setGoldStolen(false);
 		showTurnInfo(clientCmd);
 	} else {
 		handleEndOfRound(clientCmd);
