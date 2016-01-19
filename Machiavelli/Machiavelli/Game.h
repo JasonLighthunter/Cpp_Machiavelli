@@ -30,6 +30,9 @@ public:
 	bool usingAbility() { return usingAbility_; }
 	void setUsingAbility(bool b);
 
+	bool usingMagicianAbility() const { return usingMagicianAbility_; }
+	void setUsingMagicianAbility(bool b);
+
 	bool goldStolen() { return goldStolen_; }
 	void setGoldStolen(bool b);
 
@@ -45,6 +48,8 @@ public:
 	EnumState getCurrentState() const { return currentState_; }
 	std::vector<std::shared_ptr<Card>>& getDrawnCards() { return drawnCards_; }
 	void drawCards(int amount);
+	void discardCards(std::shared_ptr<Player>, int amount);
+
 	void resetDrawnCards();
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
@@ -56,6 +61,7 @@ public:
 	void markForTheft(EnumCharacter character);
 	EnumCharacter getMurderTarget();
 
+	void swapHands();
 private:
 	void createBuildingCards();
 	void createCharacterCards();
@@ -66,6 +72,7 @@ private:
 	std::vector<std::string> split(std::string& s, char delim);
 	EnumState currentState_;
 	bool usingAbility_ = false;
+	bool usingMagicianAbility_ = false;
 	bool goldStolen_ = false;
 };
 

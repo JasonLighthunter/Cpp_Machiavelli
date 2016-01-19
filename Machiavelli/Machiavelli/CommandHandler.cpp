@@ -74,6 +74,8 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 			handleChooseToBuildCommand(clientCmd);
 		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::DESTROY_BUILDING) {
 			handleDestroyBuildingAbilityCommand(cmd, clientCmd);
+		} else if((cmd=="ruilen") && (requestingPlayerHasRightRole(clientCmd) && game_->usingAbility() && game_->usingMagicianAbility())) {
+			handleMagicianAbilityCommand(cmd, clientCmd);
 		} else {
 			writeReply(clientCmd, "Onbekend commando ontvangen.");
 		}
@@ -218,6 +220,7 @@ void CommandHandler::handleDiscardCharacterCommand(EnumCharacter character, Clie
 }
 
 void CommandHandler::handleBackCommand(ClientCommand clientCmd) {
+	game_->setUsingMagicianAbility(false);
 	if(!(requestingPlayerHasRightRole(clientCmd))) {
 		writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 	} else if(game_->usingAbility()) {
@@ -245,7 +248,8 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				writeMessageToActivePlayer(clientCmd, "Welke rol wil je bestelen?\r\n [magier, koning, prediker, koopman, bouwmeester, condottiere, terug]");
 				break;
 			case EnumState::MAGICIAN_STATE:
-				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [terug]");
+				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [ruilen, terug]");
+				game_->setUsingMagicianAbility(true);
 				break;
 			case EnumState::BISHOP_STATE:
 				handleBishopAbilityCommand(clientCmd);
@@ -281,8 +285,6 @@ void CommandHandler::handleAbilityCommand(string cmd, ClientCommand clientCmd) {
 			handleTheftAbilityCommand(cmd, clientCmd);
 			break;
 		case EnumState::MAGICIAN_STATE:
-			//TODO implement
-			break;
 		case EnumState::KING_STATE:
 		case EnumState::BISHOP_STATE:
 		case EnumState::ARCHITECT_STATE:
@@ -336,6 +338,14 @@ void CommandHandler::handleBishopAbilityCommand(ClientCommand clientCmd) {
 	}
 	handleBackCommand(clientCmd);
 }
+
+//nu alleen nog maar hand ruilen.
+void CommandHandler::handleMagicianAbilityCommand(string cmd, ClientCommand clientCmd) {
+	game_->swapHands();
+	writeMessageToAll("De magier heeft de handen van de spelers gewisseld.");
+	handleBackCommand(clientCmd);
+}
+
 void CommandHandler::handleKingAbilityCommand(ClientCommand clientCmd) {
 	shared_ptr<Player> player = clientCmd.getPlayer();
 	int nrYellowBuildings = 0;

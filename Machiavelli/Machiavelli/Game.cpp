@@ -41,16 +41,16 @@ void Game::initQuickStart() {
 	default_random_engine dre{dev()};
 	//players_[0] krijgt moordenaar en koning
 	moveCharacterFromDecktoPlayer(EnumCharacter::ASSASSIN, players_[0]);
-	moveCharacterFromDecktoPlayer(EnumCharacter::KING, players_[0]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::MAGICIAN, players_[0]);
 	players_[0]->increaseGold(2);
 	//players_[1] krijgt bouwmeester en koopman
-	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::THIEF, players_[1]);
 	moveCharacterFromDecktoPlayer(EnumCharacter::WARLORD, players_[1]);
 	players_[1]->increaseGold(2);
 	//remove everything else
-	removeCharacter(EnumCharacter::MAGICIAN);
+	removeCharacter(EnumCharacter::KING);
 	removeCharacter(EnumCharacter::BISHOP);
-	removeCharacter(EnumCharacter::THIEF);
+	removeCharacter(EnumCharacter::MERCHANT);
 	removeCharacter(EnumCharacter::ARCHITECT);
 	currentState_ = EnumState::ASSASSIN_STATE;
 	for(auto player:players_) {
@@ -112,6 +112,10 @@ void Game::setUsingAbility(bool b) {
 	usingAbility_ = b;
 }
 
+void Game::setUsingMagicianAbility(bool b) {
+	usingMagicianAbility_ = b;
+}
+
 void Game::setGoldStolen(bool b) {
 	goldStolen_ = b;
 }
@@ -153,8 +157,7 @@ void Game::resetGameToSetup() {
 	currentState_ = EnumState::SETUP_CHOOSE_FIRST;
 }
 
-void Game::drawCards(int amount)
-{
+void Game::drawCards(int amount) {
 	random_device dev;
 	default_random_engine dre{ dev() };
 	for (int i = 0; i < amount; i++) {
@@ -165,8 +168,7 @@ void Game::drawCards(int amount)
 	}
 }
 
-void Game::resetDrawnCards()
-{
+void Game::resetDrawnCards() {
 	for (auto card : drawnCards_) {
 		buildingsDeck_.push_back(card);
 	}
@@ -188,8 +190,7 @@ bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Pla
 	return true;
 }
 
-void Game::putBackToBuildingsDeck(std::shared_ptr<Card> card)
-{
+void Game::putBackToBuildingsDeck(std::shared_ptr<Card> card) {
 	buildingsDeck_.push_back(card);
 }
 
@@ -214,6 +215,18 @@ EnumCharacter Game::getMurderTarget() {
 		}
 	}
 	return returnValue;
+}
+
+void Game::swapHands() {
+	map<int, shared_ptr<Card>> toMagician;
+	map<int, shared_ptr<Card>> fromMagician;
+	auto magician=getPlayerWithRole(EnumCharacter::MAGICIAN);
+	auto target=getPlayerOnIndex(getIndexOfPlayer(magician)+1%2);
+	toMagician = target->getHand();
+	fromMagician = magician->getHand();
+
+	magician->setHand(toMagician);
+	target->setHand(fromMagician);
 }
 
 void Game::createBuildingCards() {

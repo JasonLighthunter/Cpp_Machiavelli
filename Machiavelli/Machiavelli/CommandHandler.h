@@ -54,6 +54,8 @@ private:
 
 	void handleBishopAbilityCommand(ClientCommand clientCmd);
 
+	void handleMagicianAbilityCommand(std::string cmd, ClientCommand clientCmd);
+
 	void handleKingAbilityCommand(ClientCommand clientCmd);
 
 	void handleMerchantAbilityCommand(ClientCommand clientCmd);
