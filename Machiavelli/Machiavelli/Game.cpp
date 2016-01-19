@@ -168,6 +168,11 @@ void Game::drawCards(int amount) {
 	}
 }
 
+void Game::addToBackToDeck(std::shared_ptr<Card> card)
+{
+	backToDeck_.push_back(card);
+}
+
 void Game::resetDrawnCards() {
 	for (auto card : drawnCards_) {
 		buildingsDeck_.push_back(card);

@@ -74,8 +74,10 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 			handleChooseToBuildCommand(clientCmd);
 		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::DESTROY_BUILDING) {
 			handleDestroyBuildingAbilityCommand(cmd, clientCmd);
-		} else if((cmd=="ruilen") && (requestingPlayerHasRightRole(clientCmd) && game_->usingAbility() && game_->usingMagicianAbility())) {
+		} else if ((cmd == "ruilen" || cmd == "afleggen") && (requestingPlayerHasRightRole(clientCmd) && game_->usingAbility() && game_->usingMagicianAbility())) {
 			handleMagicianAbilityCommand(cmd, clientCmd);
+		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::SELECTING_CARDS) {
+			handleMagicianSwapDeckCommand(cmd, clientCmd);
 		} else {
 			writeReply(clientCmd, "Onbekend commando ontvangen.");
 		}
@@ -248,7 +250,7 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				writeMessageToActivePlayer(clientCmd, "Welke rol wil je bestelen?\r\n [magier, koning, prediker, koopman, bouwmeester, condottiere, terug]");
 				break;
 			case EnumState::MAGICIAN_STATE:
-				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [ruilen, terug]");
+				writeMessageToActivePlayer(clientCmd, "Wat wil je doen?\r\n [ruilen, afleggen, terug]");
 				game_->setUsingMagicianAbility(true);
 				break;
 			case EnumState::BISHOP_STATE:
@@ -341,9 +343,72 @@ void CommandHandler::handleBishopAbilityCommand(ClientCommand clientCmd) {
 
 //nu alleen nog maar hand ruilen.
 void CommandHandler::handleMagicianAbilityCommand(string cmd, ClientCommand clientCmd) {
-	game_->swapHands();
-	writeMessageToAll("De magier heeft de handen van de spelers gewisseld.");
-	handleBackCommand(clientCmd);
+	if (cmd == "ruilen") {
+		game_->swapHands();
+		writeMessageToAll("De magier heeft de handen van de spelers gewisseld.");
+		handleBackCommand(clientCmd);
+	}
+	else {
+		auto player = clientCmd.getPlayer();
+		string message = "\r\nWelke kaarten wil je afleggen?\r\n";
+		for (auto card : player->getHand()) {
+			message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")(" + convertEnumColorToString.at(card.second->getColor()) + ")\r\n";
+		}
+		message += "[annuleer],[accepteer]";
+		writeMessageToActivePlayer(clientCmd, message);
+		player->setCurrentTurnState(EnumTurnState::SELECTING_CARDS);
+	}
+}
+
+void CommandHandler::handleMagicianSwapDeckCommand(string cmd, ClientCommand clientCmd) {
+	auto player = clientCmd.getPlayer();
+	if (cmd == "annuleer") {
+		for (auto card : game_->getBackToDeck()) {
+			player->addBuildingCard(card);
+		}
+		game_->getBackToDeck().clear();
+
+		handleBackCommand(clientCmd);
+	}
+	else if (cmd == "accepteer") {
+		int total_size = static_cast<int>(game_->getBackToDeck().size());
+		string message = "\r\nGebouwen uit hand die teruggelegd zijn:\r\n";
+		for (auto card : game_->getBackToDeck()) {
+			message += "-   " + card->getName() + "(" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
+			game_->putBackToBuildingsDeck(card);
+		}
+		game_->getBackToDeck().clear();
+
+		message += "\r\nNieuwe gebouwen:\r\n";
+		game_->drawCards(total_size);
+		for (auto card : game_->getDrawnCards()) {
+			message += "-   " + card->getName() + "(" + to_string(card->getCosts()) + ")(" + convertEnumColorToString.at(card->getColor()) + ")\r\n";
+			player->addBuildingCard(card);
+		}
+		game_->resetDrawnCards();
+
+		writeMessageToActivePlayer(clientCmd, message);
+		
+		player->setCurrentTurnState(EnumTurnState::DEFAULT);
+		game_->setUsingAbility(false);
+		game_->setUsingMagicianAbility(false);
+		game_->setAbilityUsed(true, EnumCharacter::MAGICIAN);
+	}
+	else {
+		bool success = false;
+		for (auto cpair : player->getHand()) {
+			auto card = cpair.second;
+			if (card->getName() == clientCmd.getCmd()) {
+				game_->addToBackToDeck(card);
+				player->getHand().erase(card->getId());
+				success = true;
+				break;
+			}
+		}
+		if (!success) {
+			writeMessageToActivePlayer(clientCmd, "Je hebt een niet bestaand gebouw aangewezen.");
+		}
+	}
 }
 
 void CommandHandler::handleKingAbilityCommand(ClientCommand clientCmd) {

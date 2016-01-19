@@ -32,7 +32,7 @@ public:
 	bool isKing() const { return isKing_; }
 	void setIsKing(bool b);
 
-	std::map<int, std::shared_ptr<Card>> getHand() const { return hand_; }
+	std::map<int, std::shared_ptr<Card>>& getHand() { return hand_; }
 	void setHand(std::map<int, std::shared_ptr<Card>> hand);
 
 	std::map<int, std::shared_ptr<Card>> getBuildings() const { return buildings_; }

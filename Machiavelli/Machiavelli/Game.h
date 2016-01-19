@@ -48,7 +48,8 @@ public:
 	EnumState getCurrentState() const { return currentState_; }
 	std::vector<std::shared_ptr<Card>>& getDrawnCards() { return drawnCards_; }
 	void drawCards(int amount);
-	void discardCards(std::shared_ptr<Player>, int amount);
+	void addToBackToDeck(std::shared_ptr<Card> card);
+	std::vector<std::shared_ptr<Card>>& getBackToDeck() { return backToDeck_; }
 
 	void resetDrawnCards();
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
@@ -67,6 +68,7 @@ private:
 	void createCharacterCards();
 	std::vector<std::shared_ptr<Card>> buildingsDeck_;
 	std::vector<std::shared_ptr<Card>> drawnCards_;
+	std::vector<std::shared_ptr<Card>> backToDeck_;
 	std::map<EnumCharacter, std::shared_ptr<Character>> charactersDeck_;
 	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::string> split(std::string& s, char delim);
