@@ -56,10 +56,18 @@ private:
 
 	void handleMerchantAbilityCommand(ClientCommand clientCmd);
 
+	void handleWarlordAbilityCommand(ClientCommand clientCmd);
+
+	void handleBeginDestroyBuildingCommand(ClientCommand clientCmd);
+
+	void handleDestroyBuildingAbilityCommand(std::string cmd, ClientCommand clientCmd);
+
 	void handlePassCommand(ClientCommand clientCmd);
 	void handleChooseToBuildCommand(ClientCommand clientCmd);
 	//beeindigt de beurt.
 	void handleEndOfRound(ClientCommand clientCmd); //TODO checken op win conditites. start nieuew ronde.
+
+	void handleEndOfGame();
 
 	void handleGetGoldCommand(ClientCommand clientCmd);
 

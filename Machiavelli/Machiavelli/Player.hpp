@@ -35,6 +35,7 @@ public:
 	std::map<int, std::shared_ptr<Card>> getHand() const { return hand_; }
 	std::map<int, std::shared_ptr<Card>> getBuildings() const { return buildings_; }
 	void addBuildingCard(std::shared_ptr<Card> card);
+	void addBuildingToBuildings(std::shared_ptr<Card> card);
 	void emptyCurrentRoles();
 	void addRole(std::pair<EnumCharacter, std::shared_ptr<Character>> newRole);
 	std::vector<std::pair<EnumCharacter, std::shared_ptr<Character>>> getRoles();
@@ -43,6 +44,11 @@ public:
 	EnumTurnState getCurrentTurnState() const { return currentTurnState_; }
 	void setCurrentTurnState(EnumTurnState newState) { currentTurnState_ = newState; }
 	bool buildBuilding(std::string buildingName);
+
+	bool isFirstComplete() const { return firstComplete_; }
+	void setFirstComplete() { firstComplete_ = true; }
+
+	void destroyBuilding(std::pair<const int, std::shared_ptr<Card>> building);
 
 	void murderRole(EnumCharacter character);
 	EnumCharacter getMurderTarget();
@@ -56,6 +62,7 @@ private:
 	std::string name_;
 	EnumTurnState currentTurnState_;
 	bool isKing_ = false;
+	bool firstComplete_ = false;
 	int gold_ = 0;
 };
 

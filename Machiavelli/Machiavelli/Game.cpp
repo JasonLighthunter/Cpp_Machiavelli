@@ -45,13 +45,13 @@ void Game::initQuickStart() {
 	players_[0]->increaseGold(2);
 	//players_[1] krijgt bouwmeester en koopman
 	moveCharacterFromDecktoPlayer(EnumCharacter::MERCHANT, players_[1]);
-	moveCharacterFromDecktoPlayer(EnumCharacter::ARCHITECT, players_[1]);
+	moveCharacterFromDecktoPlayer(EnumCharacter::WARLORD, players_[1]);
 	players_[1]->increaseGold(2);
 	//remove everything else
 	removeCharacter(EnumCharacter::MAGICIAN);
 	removeCharacter(EnumCharacter::BISHOP);
 	removeCharacter(EnumCharacter::THIEF);
-	removeCharacter(EnumCharacter::WARLORD);
+	removeCharacter(EnumCharacter::ARCHITECT);
 	currentState_ = EnumState::ASSASSIN_STATE;
 	for(auto player:players_) {
 		while(player->getHand().size() < 4) {
@@ -61,7 +61,15 @@ void Game::initQuickStart() {
 			player->addBuildingCard(card);
 			buildingsDeck_.erase(buildingsDeck_.begin()+pos);
 		}
+		/*for (int i = 0; i < 7; i++) {
+			uniform_int_distribution<int> dist{ 1, static_cast<int>(buildingsDeck_.size()) - 1 };
+			int pos = dist(dre);
+			auto card = buildingsDeck_.at(pos);
+			player->addBuildingToBuildings(card);
+			buildingsDeck_.erase(buildingsDeck_.begin() + pos);
+		}*/
 	}
+
 }
 
 void Game::addPlayer(shared_ptr<Player> player) {
@@ -106,6 +114,14 @@ void Game::setUsingAbility(bool b) {
 
 void Game::setGoldStolen(bool b) {
 	goldStolen_ = b;
+}
+
+std::shared_ptr<Player> Game::getEnemy(std::shared_ptr<Player> currentPlayer) {
+	for (auto enemy : players_) {
+		if (currentPlayer != enemy) {
+			return enemy;
+		}
+	}
 }
 
 bool Game::abilityUsed(EnumCharacter character) {
@@ -169,6 +185,11 @@ bool Game::moveCharacterFromDecktoPlayer(EnumCharacter character, shared_ptr<Pla
 		return false;
 	}
 	return true;
+}
+
+void Game::putBackToBuildingsDeck(std::shared_ptr<Card> card)
+{
+	buildingsDeck_.push_back(card);
 }
 
 void Game::murderCharacter(EnumCharacter character) {
