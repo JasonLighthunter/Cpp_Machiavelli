@@ -42,53 +42,39 @@ void CommandHandler::handleCommand(ClientCommand clientCmd){
 		if (cmd == "start" || cmd == "begin" || cmd == "quickstart") {
 			if (game_->getCurrentState() == EnumState::UNSTARTED && playerCount_ == 2) {
 				handleStartCommands(clientCmd, cmd);
-			}
-			else {
+			} else {
 				writeReply(clientCmd, "Het is nu niet mogelijk om een spel te starten.");
 			}
-		}
-		else if (cmd == "moordenaar" || cmd == "dief" || cmd == "magier" || cmd == "koning" || cmd == "prediker" || cmd == "koopman" || cmd == "bouwmeester" || cmd == "condottiere") {
+		} else if (cmd == "moordenaar" || cmd == "dief" || cmd == "magier" || cmd == "koning" || cmd == "prediker" || cmd == "koopman" || cmd == "bouwmeester" || cmd == "condottiere") {
 			if ((game_->getCurrentState() == EnumState::SETUP_CHOOSE ||
 				game_->getCurrentState() == EnumState::SETUP_DISCARD ||
 				game_->getCurrentState() == EnumState::SETUP_CHOOSE_FIRST) &&
 				clientCmd.getPlayer() == game_->getPlayerOnIndex(turnCounter_)) {
 				handleSetupCommands(convertToEnumCharacter.at(cmd), clientCmd);
-			}
-			else if (requestingPlayerHasRightRole(clientCmd) && game_->usingAbility()) {
+			} else if (requestingPlayerHasRightRole(clientCmd) && game_->usingAbility()) {
 				handleAbilityCommand(cmd, clientCmd);
-			}
-			else {
+			} else {
 				writeReply(clientCmd, "Je kunt dat commando nu niet gebruiken.");
 			}
-		}
-		else if (cmd == "goud") {
+		} else if (cmd == "goud") {
 			handleGetGoldCommand(clientCmd);
-		}
-		else if (cmd == "gebouwen") {
+		} else if (cmd == "gebouwen") {
 			handleGetBuildingCommand(clientCmd);
-		}
-		else if (cmd == "bouw") {
+		} else if (cmd == "bouw") {
 			handleBuildBuildingCommand(clientCmd);
-		}
-		else if (cmd == "eigenschap") {
+		} else if (cmd == "eigenschap") {
 			handleStartAbilityCommand(clientCmd);
-		}
-		else if (cmd == "terug") {
+		} else if (cmd == "terug") {
 			handleBackCommand(clientCmd);
-		}
-		else if (cmd == "pas") {
+		} else if (cmd == "pas") {
 			handlePassCommand(clientCmd);
-		}
-		else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
+		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::CHOOSE_BUILDING) {
 			handleChooseBuildingCommand(clientCmd);
-		}
-		else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
+		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::BUILD_BUILDING) {
 			handleChooseToBuildCommand(clientCmd);
-		}
-		else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::DESTROY_BUILDING) {
+		} else if (clientCmd.getPlayer()->getCurrentTurnState() == EnumTurnState::DESTROY_BUILDING) {
 			handleDestroyBuildingAbilityCommand(cmd, clientCmd);
-		}
-		else {
+		} else {
 			writeReply(clientCmd, "Onbekend commando ontvangen.");
 		}
 	}
@@ -268,6 +254,8 @@ void CommandHandler::handleStartAbilityCommand(ClientCommand clientCmd) {
 				handleMerchantAbilityCommand(clientCmd);
 				break;
 			case EnumState::KING_STATE:
+				handleKingAbilityCommand(clientCmd);
+				break;
 			case EnumState::ARCHITECT_STATE:
 				writeMessageToActivePlayer(clientCmd, "De "+convertFromEnumCharacter.at(stateToCharacter.at(game_->getCurrentState()))+" heeft geen speciale eigenschappen (Die hij op deze manier kan gebruiken).\r\n [terug]");
 				game_->setUsingAbility(false);
@@ -343,9 +331,27 @@ void CommandHandler::handleBishopAbilityCommand(ClientCommand clientCmd) {
 	player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->setAbilityUsed(true);
 	if (nrBlueBuildings > 0) {
 		writeMessageToActivePlayer(clientCmd, "Je hebt " + to_string(nrBlueBuildings) + " blauwe gebouwen, je goud is opgehoogd naar " + to_string(player->getGold()));
-	}
-	else {
+	} else {
 		writeMessageToActivePlayer(clientCmd, "Je hebt geen blauw gebouw, je hoeveelheid goud is gelijk gebleven.");
+	}
+	handleBackCommand(clientCmd);
+}
+void CommandHandler::handleKingAbilityCommand(ClientCommand clientCmd) {
+	shared_ptr<Player> player = clientCmd.getPlayer();
+	int nrYellowBuildings = 0;
+
+	for(auto building:player->getBuildings()) {
+		if(building.second->getColor()==EnumColor::YELLOW) {
+			nrYellowBuildings++;
+		}
+	}
+
+	player->increaseGold(nrYellowBuildings);
+	player->getCharacter(stateToCharacter.at(game_->getCurrentState()))->setAbilityUsed(true);
+	if(nrYellowBuildings > 0) {
+		writeMessageToActivePlayer(clientCmd, "Je hebt "+to_string(nrYellowBuildings)+" gele gebouwen, je goud is opgehoogd naar "+to_string(player->getGold()));
+	} else {
+		writeMessageToActivePlayer(clientCmd, "Je hebt geen geel gebouw, je hoeveelheid goud is gelijk gebleven.");
 	}
 	handleBackCommand(clientCmd);
 }
@@ -400,16 +406,13 @@ void CommandHandler::handleBeginDestroyBuildingCommand(ClientCommand clientCmd) 
 	if (enemy->hasRole(EnumCharacter::BISHOP)) {
 		writeMessageToActivePlayer(clientCmd, "Je kunt geen gebouw van de prediker vernietingen. \r\n");
 		game_->setUsingAbility(false);
-	}
-	else if (enemy->getBuildings().size() == 0) {
+	} else if (enemy->getBuildings().size() == 0) {
 		writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft geen gebouwen. \r\n");
 		game_->setUsingAbility(false);
-	}
-	else if (enemy->getBuildings().size() >= 8) {
+	} else if (enemy->getBuildings().size() >= 8) {
 		writeMessageToActivePlayer(clientCmd, "Je tegenstander heeft al meer dan 8 gebouwen. \r\n");
 		game_->setUsingAbility(false);
-	}
-	else {
+	} else {
 		string message = "Welk gebouw wil je vernietigen?\r\n";
 		for (auto card : enemy->getBuildings()) {
 			message += "-   " + card.second->getName() + "(" + to_string(card.second->getCosts()) + ")(" + convertEnumColorToString.at(card.second->getColor()) + ")\r\n";

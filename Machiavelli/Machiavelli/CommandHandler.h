@@ -54,6 +54,8 @@ private:
 
 	void handleBishopAbilityCommand(ClientCommand clientCmd);
 
+	void handleKingAbilityCommand(ClientCommand clientCmd);
+
 	void handleMerchantAbilityCommand(ClientCommand clientCmd);
 
 	void handleWarlordAbilityCommand(ClientCommand clientCmd);

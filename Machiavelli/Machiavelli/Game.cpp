@@ -61,13 +61,13 @@ void Game::initQuickStart() {
 			player->addBuildingCard(card);
 			buildingsDeck_.erase(buildingsDeck_.begin()+pos);
 		}
-		/*for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 7; i++) {
 			uniform_int_distribution<int> dist{ 1, static_cast<int>(buildingsDeck_.size()) - 1 };
 			int pos = dist(dre);
 			auto card = buildingsDeck_.at(pos);
 			player->addBuildingToBuildings(card);
 			buildingsDeck_.erase(buildingsDeck_.begin() + pos);
-		}*/
+		}
 	}
 
 }
@@ -116,12 +116,13 @@ void Game::setGoldStolen(bool b) {
 	goldStolen_ = b;
 }
 
-std::shared_ptr<Player> Game::getEnemy(std::shared_ptr<Player> currentPlayer) {
+shared_ptr<Player> Game::getEnemy(shared_ptr<Player> currentPlayer) {
 	for (auto enemy : players_) {
 		if (currentPlayer != enemy) {
 			return enemy;
 		}
 	}
+	return nullptr; //this should, and practicliw will never, happen!
 }
 
 bool Game::abilityUsed(EnumCharacter character) {
