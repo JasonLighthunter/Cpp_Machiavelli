@@ -705,6 +705,7 @@ void CommandHandler::handleEndOfRound(ClientCommand clientCmd) {
 
 		if (i == -1) {
 			turnCounter_ -= 3;
+			turnCounter_= abs(turnCounter_);
 		}
 		else {
 			turnCounter_ = i;
