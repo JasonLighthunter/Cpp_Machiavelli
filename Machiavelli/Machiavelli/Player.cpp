@@ -24,6 +24,10 @@ void Player::setIsKing(bool b) {
 	isKing_ = b;
 }
 
+void Player::setHand(map<int, shared_ptr<Card>> hand) {
+	hand_ = hand;
+}
+
 
 void Player::addBuildingCard(std::shared_ptr<Card> card) {
 	hand_[card->getId()] = card;

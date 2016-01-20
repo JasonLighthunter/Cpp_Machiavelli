@@ -30,6 +30,9 @@ public:
 	bool usingAbility() { return usingAbility_; }
 	void setUsingAbility(bool b);
 
+	bool usingMagicianAbility() const { return usingMagicianAbility_; }
+	void setUsingMagicianAbility(bool b);
+
 	bool goldStolen() { return goldStolen_; }
 	void setGoldStolen(bool b);
 
@@ -45,6 +48,9 @@ public:
 	EnumState getCurrentState() const { return currentState_; }
 	std::vector<std::shared_ptr<Card>>& getDrawnCards() { return drawnCards_; }
 	void drawCards(int amount);
+	void addToBackToDeck(std::shared_ptr<Card> card);
+	std::vector<std::shared_ptr<Card>>& getBackToDeck() { return backToDeck_; }
+
 	void resetDrawnCards();
 	std::map<EnumCharacter, std::shared_ptr<Character>> getCharactersDeck() const { return charactersDeck_; }
 	std::pair<EnumCharacter, std::shared_ptr<Character>> removeCharacter(EnumCharacter character);
@@ -56,16 +62,19 @@ public:
 	void markForTheft(EnumCharacter character);
 	EnumCharacter getMurderTarget();
 
+	void swapHands();
 private:
 	void createBuildingCards();
 	void createCharacterCards();
 	std::vector<std::shared_ptr<Card>> buildingsDeck_;
 	std::vector<std::shared_ptr<Card>> drawnCards_;
+	std::vector<std::shared_ptr<Card>> backToDeck_;
 	std::map<EnumCharacter, std::shared_ptr<Character>> charactersDeck_;
 	std::vector<std::shared_ptr<Player>> players_;
 	std::vector<std::string> split(std::string& s, char delim);
 	EnumState currentState_;
 	bool usingAbility_ = false;
+	bool usingMagicianAbility_ = false;
 	bool goldStolen_ = false;
 };
 
